@@ -1,6 +1,7 @@
 package app
 
 import (
+	"tgmarket/internal/protobufs"
 	"tgmarket/internal/user"
 	"time"
 
@@ -18,8 +19,8 @@ var app *App
 func GetApp() *App {
 	if app == nil {
 		app = &App{
-			Cache: user.NewCache(), 
-			LaunchTime: uint64(time.Now().Unix())
+			Cache:      user.NewCache(),
+			LaunchTime: uint64(time.Now().Unix()),
 		}
 	}
 	return app
@@ -30,11 +31,11 @@ func GetDB() *gorm.DB {
 }
 
 func (app *App) GetUser(id int64) *user.Cache {
-	user, ok := app.Cache[id]
+	userdata, ok := app.Cache[id]
 	if ok {
-		return user
+		return userdata
 	} else {
-		cache := &user.Cache{State: cache.None}
+		cache := &user.Cache{State: protobufs.UserState_None}
 		app.Cache[id] = cache
 		return cache
 	}
