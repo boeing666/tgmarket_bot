@@ -4,6 +4,15 @@ package protobufs;
 
 option go_package = "./protobufs";
 
+enum UserState {
+	None = 0;
+	EnterProductURL = 1;
+	EnterProductName = 2;
+	EnterProductPool = 3;
+	EnterMinPrice = 4;
+	EnterMinBonuses = 5;
+}
+
 enum ButtonID {
 	Invalid = 0;
 	AddProduct = 1;
@@ -30,10 +39,5 @@ message ProdcutData {
 
 message ButtonData {
 	ButtonID id = 1;
-	bytes data = 2;
-}
-
-message ChangeMenuData {
-	ButtonID newmenu = 1;
 	bytes data = 2;
 }

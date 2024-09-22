@@ -18,8 +18,8 @@ func main() {
 		panic(err)
 	}
 
-	app := app.GetContainer()
-	app.Init(db)
+	app := app.GetApp()
+	app.Database = db
 
 	err = bot.Run(config.APIToken)
 	if err != nil {

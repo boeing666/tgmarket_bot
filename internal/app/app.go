@@ -1,31 +1,41 @@
 package app
 
 import (
-	"sync"
+	"tgmarket/internal/user"
+	"time"
 
 	"gorm.io/gorm"
 )
 
-type Container struct {
-	Database *gorm.DB
+type App struct {
+	Database   *gorm.DB
+	Cache      map[int64]*user.Cache
+	LaunchTime uint64
 }
 
-var (
-	container *Container
-	once      sync.Once
-)
+var app *App
 
-func (c *Container) Init(database *gorm.DB) {
-	container.Database = database
-}
-
-func GetContainer() *Container {
-	once.Do(func() {
-		container = &Container{}
-	})
-	return container
+func GetApp() *App {
+	if app == nil {
+		app = &App{
+			Cache: user.NewCache(), 
+			LaunchTime: uint64(time.Now().Unix())
+		}
+	}
+	return app
 }
 
 func GetDB() *gorm.DB {
-	return GetContainer().Database
+	return GetApp().Database
+}
+
+func (app *App) GetUser(id int64) *user.Cache {
+	user, ok := app.Cache[id]
+	if ok {
+		return user
+	} else {
+		cache := &user.Cache{State: cache.None}
+		app.Cache[id] = cache
+		return cache
+	}
 }

@@ -3,22 +3,43 @@ package bot
 import (
 	"tgmarket/internal/protobufs"
 
-	"github.com/mymmrac/telego"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
-type callbackContext struct {
-	Bot    *telego.Bot
-	Update *telego.Update
-	Data   []byte
+func callbackAddProduct(ctx callbackContext) error {
+	ctx.EditMessageTextWithKeyboard(addNewProductText(),
+		tu.InlineKeyboard(
+			tu.InlineKeyboardRow(protobufs.ButtonCancel()),
+		),
+	)
+	ctx.GetUser().State = protobufs.UserState_EnterProductURL
+	return nil
 }
 
-type queryHandler func(ctx callbackContext) error
+func callbackListOfProducts(ctx callbackContext) error {
+	return nil
+}
 
-var buttonCallbacks map[protobufs.ButtonID]queryHandler
+func callbackSetMinPrice(ctx callbackContext) error {
+	return nil
+}
 
-func registerCallbacks() {
-	buttonCallbacks = make(map[protobufs.ButtonID]queryHandler)
+func callbackSetMinBonuses(ctx callbackContext) error {
+	return nil
+}
 
-	buttonCallbacks[protobufs.ButtonID_AddProduct] = callbackAddProduct
-	buttonCallbacks[protobufs.ButtonID_ListOfProducts] = callbackListOfProducts
+func callbackChangeProductName(ctx callbackContext) error {
+	return nil
+}
+
+func callbackDeleteProduct(ctx callbackContext) error {
+	return nil
+}
+
+func callbackMainMenu(ctx callbackContext) error {
+	return nil
+}
+
+func callbackChangeMenu(ctx callbackContext) error {
+	return nil
 }
