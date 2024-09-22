@@ -8,6 +8,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func BuildMainMenu() *telego.InlineKeyboardMarkup {
+	return tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			ButtonAddProduct(),
+			ButtonProductList(),
+		),
+	)
+}
+
 func ButtonAddProduct() telego.InlineKeyboardButton {
 	return CreateButton("🆕✨Добавить Товар", ButtonID_AddProduct, nil)
 }

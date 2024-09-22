@@ -14,16 +14,10 @@ import (
 )
 
 func handleStartMenu(bot *telego.Bot, update telego.Update) {
-	keyboard := tu.InlineKeyboard(
-		tu.InlineKeyboardRow(
-			protobufs.ButtonAddProduct(),
-			protobufs.ButtonProductList(),
-		),
-	)
 	bot.SendMessage(tu.Message(
 		tu.ID(update.Message.Chat.ID),
 		welcomeText(),
-	).WithReplyMarkup(keyboard))
+	).WithReplyMarkup(protobufs.BuildMainMenu()))
 }
 
 func handleQueries(bot *telego.Bot, update telego.Update) {

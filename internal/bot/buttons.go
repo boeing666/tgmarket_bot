@@ -6,6 +6,7 @@ import (
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"google.golang.org/protobuf/proto"
 )
 
 type callbackContext struct {
@@ -16,7 +17,7 @@ type callbackContext struct {
 
 type callbackHandler func(ctx callbackContext) error
 
-func (c callbackContext) EditMessageText(text string) (*telego.Message, error) {
+func (c callbackContext) EditLastMessageText(text string) (*telego.Message, error) {
 	return c.Bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    tu.ID(c.Update.CallbackQuery.From.ID),
 		Text:      text,
@@ -24,7 +25,7 @@ func (c callbackContext) EditMessageText(text string) (*telego.Message, error) {
 	})
 }
 
-func (c callbackContext) EditMessageTextWithKeyboard(text string, keyboard *telego.InlineKeyboardMarkup) (*telego.Message, error) {
+func (c callbackContext) EditLastMessage(text string, keyboard *telego.InlineKeyboardMarkup) (*telego.Message, error) {
 	return c.Bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      tu.ID(c.Update.CallbackQuery.From.ID),
 		Text:        text,
@@ -38,6 +39,10 @@ func (c callbackContext) GetUser() *user.Cache {
 	return ctx.Value("user").(*user.Cache)
 }
 
+func (c callbackContext) Unmarshal(msg proto.Message) error {
+	return proto.Unmarshal(c.Data, msg)
+}
+
 var buttonCallbacks map[protobufs.ButtonID]callbackHandler
 
 func registerButtons() {
@@ -49,6 +54,6 @@ func registerButtons() {
 	buttonCallbacks[protobufs.ButtonID_SetMinBonuses] = callbackSetMinBonuses
 	buttonCallbacks[protobufs.ButtonID_ChangeProductName] = callbackChangeProductName
 	buttonCallbacks[protobufs.ButtonID_DeleteProduct] = callbackDeleteProduct
-	buttonCallbacks[protobufs.ButtonID_MainMenu] = callbackMainMenu
 	buttonCallbacks[protobufs.ButtonID_ChangeMenu] = callbackChangeMenu
+	buttonCallbacks[protobufs.ButtonID_MainMenu] = callbackMainMenu
 }

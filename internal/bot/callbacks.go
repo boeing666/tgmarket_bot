@@ -7,7 +7,7 @@ import (
 )
 
 func callbackAddProduct(ctx callbackContext) error {
-	ctx.EditMessageTextWithKeyboard(addNewProductText(),
+	ctx.EditLastMessage(addNewProductText(),
 		tu.InlineKeyboard(
 			tu.InlineKeyboardRow(protobufs.ButtonCancel()),
 		),
@@ -37,9 +37,16 @@ func callbackDeleteProduct(ctx callbackContext) error {
 }
 
 func callbackMainMenu(ctx callbackContext) error {
-	return nil
+	_, err := ctx.EditLastMessage(welcomeText(), protobufs.BuildMainMenu())
+	return err
 }
 
 func callbackChangeMenu(ctx callbackContext) error {
-	return nil
+	var msg protobufs.ButtonData
+	err := ctx.Unmarshal(&msg)
+	if err != nil {
+		return err
+	}
+	ctx.Data = msg.Data
+	return buttonCallbacks[msg.Id](ctx)
 }
