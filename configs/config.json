@@ -1,0 +1,9 @@
+{
+    "api_token": "",
+    "db_settings": {
+        "host": "",
+        "database": "",
+        "username": "",
+        "password": ""
+    }
+}

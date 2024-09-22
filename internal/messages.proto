@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package protobufs;
+
+option go_package = "./protobufs";
+
+enum ButtonID {
+	Invalid = 0;
+	AddProduct = 1;
+	ListOfProducts = 2;
+	
+	SetMinPrice = 3;
+	SetMinBonuses = 4;
+	ChangeProductName = 5;
+
+	DeleteProduct = 6;
+
+	MainMenu = 7;
+	ChangeMenu = 8;
+}
+
+message ListOfProdcutsData {
+	int32 page = 1;
+}
+
+message ProdcutData {
+	int64 id = 1;
+	int32 lastpage = 2;
+}
+
+message ButtonData {
+	ButtonID id = 1;
+	bytes data = 2;
+}
+
+message ChangeMenuData {
+	ButtonID newmenu = 1;
+	bytes data = 2;
+}
