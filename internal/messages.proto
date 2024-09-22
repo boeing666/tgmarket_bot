@@ -4,6 +4,14 @@ package protobufs;
 
 option go_package = "./protobufs";
 
+enum Shops {
+	UnknownShop = 0;
+	YandexMarket = 1;
+	Ozon = 2;
+	Wildberries = 3;
+	SberMegaMarket = 4;
+}
+
 enum UserState {
 	None = 0;
 	EnterProductURL = 1;

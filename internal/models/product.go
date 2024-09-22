@@ -19,5 +19,4 @@ type Product struct {
 	UpdatedAt time.Time
 
 	UserID int64
-	User   User
 }

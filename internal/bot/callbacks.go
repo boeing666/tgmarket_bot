@@ -17,6 +17,7 @@ func callbackAddProduct(ctx callbackContext) error {
 }
 
 func callbackListOfProducts(ctx callbackContext) error {
+
 	return nil
 }
 

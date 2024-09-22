@@ -2,31 +2,37 @@ package bot
 
 import (
 	"fmt"
+	"tgmarket/internal/cache"
 	"tgmarket/internal/protobufs"
-	"tgmarket/internal/user"
 
 	"github.com/mymmrac/telego"
 )
 
-func handleEnterProductURL(user *user.Cache, bot *telego.Bot, update telego.Update) error {
+func handleEnterProductURL(user *cache.User, bot *telego.Bot, update telego.Update) error {
+	market := detectMarketplace(update.Message.Text)
+
 	return nil
 }
-func handleEnterProductName(user *user.Cache, bot *telego.Bot, update telego.Update) error {
+
+func handleEnterProductName(user *cache.User, bot *telego.Bot, update telego.Update) error {
 	return nil
 }
-func handleEnterProductPool(user *user.Cache, bot *telego.Bot, update telego.Update) error {
+
+func handleEnterProductPool(user *cache.User, bot *telego.Bot, update telego.Update) error {
 	return nil
 }
-func handleEnterMinPrice(user *user.Cache, bot *telego.Bot, update telego.Update) error {
+
+func handleEnterMinPrice(user *cache.User, bot *telego.Bot, update telego.Update) error {
 	return nil
 }
-func handleEnterMinBonuses(user *user.Cache, bot *telego.Bot, update telego.Update) error {
+
+func handleEnterMinBonuses(user *cache.User, bot *telego.Bot, update telego.Update) error {
 	return nil
 }
 
 func handleUserStates(bot *telego.Bot, update telego.Update) {
 	ctx := update.Context()
-	user := ctx.Value("user").(*user.Cache)
+	user := ctx.Value("user").(*cache.User)
 
 	if user.State == protobufs.UserState_None {
 		return
