@@ -14,10 +14,20 @@ import (
 )
 
 func handleStartMenu(bot *telego.Bot, update telego.Update) {
-	bot.SendMessage(tu.Message(
+	user := getUser(&update)
+	if user.LastMsgID != 0 {
+		bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), user.LastMsgID))
+		user.LastMsgID = 0
+	}
+
+	res, err := bot.SendMessage(tu.Message(
 		tu.ID(update.Message.Chat.ID),
 		welcomeText(),
 	).WithReplyMarkup(protobufs.BuildMainMenu()))
+
+	if err == nil {
+		user.LastMsgID = res.MessageID
+	}
 }
 
 func handleQueries(bot *telego.Bot, update telego.Update) {
@@ -71,10 +81,13 @@ func handleMiddleware(bot *telego.Bot, update telego.Update, next th.Handler) {
 		userID = update.CallbackQuery.From.ID
 	}
 
-	app := app.GetApp()
 	ctx := update.Context()
 	if userID != 0 {
-		user := app.GetUser(userID)
+		user, err := userscache.getUser(userID)
+		if err != nil {
+			fmt.Printf("Can't GetUser %s\n", err.Error())
+			return
+		}
 		ctx = context.WithValue(ctx, "user", user)
 	}
 
@@ -88,6 +101,7 @@ func Run(token string) error {
 		return err
 	}
 
+	initUsersCache()
 	registerButtons()
 
 	updates, _ := bot.UpdatesViaLongPolling(nil)

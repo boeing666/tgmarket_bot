@@ -38,6 +38,7 @@ func callbackDeleteProduct(ctx callbackContext) error {
 }
 
 func callbackMainMenu(ctx callbackContext) error {
+	ctx.GetUser().State = protobufs.UserState_None
 	_, err := ctx.EditLastMessage(welcomeText(), protobufs.BuildMainMenu())
 	return err
 }

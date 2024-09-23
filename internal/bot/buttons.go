@@ -35,8 +35,7 @@ func (c callbackContext) EditLastMessage(text string, keyboard *telego.InlineKey
 }
 
 func (c callbackContext) GetUser() *cache.User {
-	ctx := c.Update.Context()
-	return ctx.Value("user").(*cache.User)
+	return getUser(c.Update)
 }
 
 func (c callbackContext) Unmarshal(msg proto.Message) error {

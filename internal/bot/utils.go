@@ -3,7 +3,10 @@ package bot
 import (
 	"net/url"
 	"strings"
+	"tgmarket/internal/cache"
 	"tgmarket/internal/protobufs"
+
+	"github.com/mymmrac/telego"
 )
 
 func detectMarketplace(link string) protobufs.Shops {
@@ -39,4 +42,9 @@ func getShopName(shop protobufs.Shops) string {
 	default:
 		return "Неизвестный"
 	}
+}
+
+func getUser(update *telego.Update) *cache.User {
+	ctx := update.Context()
+	return ctx.Value("user").(*cache.User)
 }
