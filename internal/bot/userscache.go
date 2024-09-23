@@ -37,10 +37,11 @@ func (u usersCache) getUser(id int64) (*cache.User, error) {
 	}
 
 	userdata = &cache.User{
-		ID:        user.ID,
-		State:     protobufs.UserState_None,
-		LastMsgID: 0,
-		Products:  products,
+		ID:         user.ID,
+		TelegramID: id,
+		State:      protobufs.UserState_None,
+		LastMsgID:  0,
+		Products:   products,
 	}
 
 	u.users[id] = userdata
@@ -48,7 +49,7 @@ func (u usersCache) getUser(id int64) (*cache.User, error) {
 	return userdata, nil
 }
 
-func getUserProducts(userID int64) (map[int64]models.Product, error) {
+func getUserProducts(userID int64) (map[int64]*models.Product, error) {
 	var products []models.Product
 	db := app.GetDB()
 
@@ -56,9 +57,9 @@ func getUserProducts(userID int64) (map[int64]models.Product, error) {
 		return nil, err
 	}
 
-	productMap := make(map[int64]models.Product)
+	productMap := make(map[int64]*models.Product)
 	for _, product := range products {
-		productMap[product.ID] = product
+		productMap[product.ID] = &product
 	}
 
 	return productMap, nil

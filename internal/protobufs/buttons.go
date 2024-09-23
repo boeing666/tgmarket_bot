@@ -30,6 +30,26 @@ func ButtonMainMenu() telego.InlineKeyboardButton {
 	return CreateButton("↩️ На главную", ButtonID_ChangeMenu, &data)
 }
 
+func ButtonSetMinimalPrice() telego.InlineKeyboardButton {
+	data := ButtonData{Id: ButtonID_MainMenu}
+	return CreateButton("💵 Установить минимальную цену", ButtonID_MainMenu, &data)
+}
+
+func ButtonSetMinimalBonuses() telego.InlineKeyboardButton {
+	data := ButtonData{Id: ButtonID_MainMenu}
+	return CreateButton("❇️Установить минимальные бонусы", ButtonID_MainMenu, &data)
+}
+
+func ButtonSetProductName() telego.InlineKeyboardButton {
+	data := ButtonData{Id: ButtonID_MainMenu}
+	return CreateButton("✏️ Изменить имя товара", ButtonID_MainMenu, &data)
+}
+
+func ButtonDeleteProduct() telego.InlineKeyboardButton {
+	data := ButtonData{Id: ButtonID_MainMenu}
+	return CreateButton("🗑️ Удалить Товар", ButtonID_MainMenu, &data)
+}
+
 func ButtonCancel() telego.InlineKeyboardButton {
 	data := ButtonData{Id: ButtonID_MainMenu}
 	return CreateButton("❌ Отменить ввод", ButtonID_MainMenu, &data)

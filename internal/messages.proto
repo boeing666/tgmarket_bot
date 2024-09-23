@@ -25,15 +25,16 @@ enum ButtonID {
 	Invalid = 0;
 	AddProduct = 1;
 	ListOfProducts = 2;
+	ProductInfo = 3;
 	
-	SetMinPrice = 3;
-	SetMinBonuses = 4;
-	ChangeProductName = 5;
+	SetMinPrice = 4;
+	SetMinBonuses = 5;
+	ChangeProductName = 6;
 
-	DeleteProduct = 6;
+	DeleteProduct = 7;
 
-	MainMenu = 7;
-	ChangeMenu = 8;
+	MainMenu = 8;
+	ChangeMenu = 9;
 }
 
 message ListOfProdcutsData {

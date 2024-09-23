@@ -12,12 +12,12 @@ import (
 func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Update) error {
 	bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID))
 
+	keyboard := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(protobufs.ButtonCancel()),
+	)
+
 	market := detectMarketplace(update.Message.Text)
 	if market == protobufs.Shops_UnknownShop {
-		keyboard := tu.InlineKeyboard(
-			tu.InlineKeyboardRow(protobufs.ButtonCancel()),
-		)
-
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      tu.ID(update.Message.Chat.ID),
 			Text:        errorInProductURLText(),
@@ -27,7 +27,19 @@ func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Upd
 		return nil
 	}
 
-	return nil
+	product, err := user.AddProduct(int(market), update.Message.Text)
+	if err != nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:      tu.ID(update.Message.Chat.ID),
+			Text:        errorAddProductToDB(),
+			MessageID:   user.LastMsgID,
+			ReplyMarkup: keyboard,
+		})
+		return err
+	}
+
+	user.State = protobufs.UserState_None
+	return showProductInfo(&protobufs.ProdcutData{Id: product.ID, Lastpage: 9999}, bot, user)
 }
 
 func handleEnterProductName(user *cache.User, bot *telego.Bot, update *telego.Update) error {

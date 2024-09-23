@@ -8,22 +8,25 @@ import (
 
 type User struct {
 	ID          int64
+	TelegramID  int64
 	State       protobufs.UserState
 	LastMsgID   int
 	MenuMessage string
 
-	Products map[int64]models.Product
+	Products map[int64]*models.Product
 }
 
-func (u *User) AddProduct(product models.Product) error {
+func (u *User) AddProduct(shop int, url string) (*models.Product, error) {
 	db := app.GetDB()
 
+	product := models.Product{URL: url, ShopID: shop, UserID: u.ID}
+
 	if err := db.Create(&product).Error; err != nil {
-		return err
+		return nil, err
 	}
 
-	u.Products[product.ID] = product
-	return nil
+	u.Products[product.ID] = &product
+	return &product, nil
 }
 
 func (u *User) RemoveProduct(productID int64) error {
