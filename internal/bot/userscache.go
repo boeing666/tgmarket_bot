@@ -37,11 +37,11 @@ func (u usersCache) getUser(id int64) (*cache.User, error) {
 	}
 
 	userdata = &cache.User{
-		ID:         user.ID,
-		TelegramID: id,
-		State:      protobufs.UserState_None,
-		LastMsgID:  0,
-		Products:   products,
+		ID:          user.ID,
+		TelegramID:  id,
+		State:       protobufs.UserState_None,
+		ActiveMsgID: 0,
+		Products:    products,
 	}
 
 	u.users[id] = userdata

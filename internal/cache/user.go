@@ -4,14 +4,18 @@ import (
 	"tgmarket/internal/app"
 	"tgmarket/internal/models"
 	"tgmarket/internal/protobufs"
+	"time"
 )
 
 type User struct {
 	ID          int64
 	TelegramID  int64
 	State       protobufs.UserState
-	LastMsgID   int
 	MenuMessage string
+
+	ActiveProductID int64
+	ActiveMsgID     int
+	LastPage        int
 
 	Products map[int64]*models.Product
 }
@@ -19,7 +23,12 @@ type User struct {
 func (u *User) AddProduct(shop int, url string) (*models.Product, error) {
 	db := app.GetDB()
 
-	product := models.Product{URL: url, ShopID: shop, UserID: u.ID}
+	product := models.Product{
+		Name:   "Имя не задано",
+		URL:    url,
+		ShopID: shop,
+		UserID: u.ID,
+	}
 
 	if err := db.Create(&product).Error; err != nil {
 		return nil, err
@@ -40,16 +49,14 @@ func (u *User) RemoveProduct(productID int64) error {
 	return nil
 }
 
-func (u *User) UpdateProduct(product models.Product) (bool, error) {
-	if product, exists := u.Products[product.ID]; exists {
-		db := app.GetDB()
+func (u *User) UpdateProduct(product *models.Product) error {
+	db := app.GetDB()
 
-		if err := db.Save(&product).Error; err != nil {
-			return false, err
-		}
-
-		u.Products[product.ID] = product
-		return true, nil
+	product.UpdatedAt = time.Now()
+	if err := db.Save(&product).Error; err != nil {
+		return err
 	}
-	return false, nil
+
+	u.Products[product.ID] = product
+	return nil
 }

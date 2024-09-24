@@ -56,4 +56,5 @@ func registerButtons() {
 	buttonCallbacks[protobufs.ButtonID_ChangeMenu] = callbackChangeMenu
 	buttonCallbacks[protobufs.ButtonID_MainMenu] = callbackMainMenu
 	buttonCallbacks[protobufs.ButtonID_ProductInfo] = callbackProductInfo
+	buttonCallbacks[protobufs.ButtonID_Nothing] = callbackNothing
 }

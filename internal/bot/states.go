@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strconv"
 	"tgmarket/internal/cache"
 	"tgmarket/internal/protobufs"
 
@@ -21,7 +22,7 @@ func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Upd
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      tu.ID(update.Message.Chat.ID),
 			Text:        errorInProductURLText(),
-			MessageID:   user.LastMsgID,
+			MessageID:   user.ActiveMsgID,
 			ReplyMarkup: keyboard,
 		})
 		return nil
@@ -31,31 +32,72 @@ func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Upd
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      tu.ID(update.Message.Chat.ID),
-			Text:        errorAddProductToDB(),
-			MessageID:   user.LastMsgID,
+			Text:        errorAddProductToDBText(),
+			MessageID:   user.ActiveMsgID,
 			ReplyMarkup: keyboard,
 		})
 		return err
 	}
 
 	user.State = protobufs.UserState_None
-	return showProductInfo(&protobufs.ProdcutData{Id: product.ID, Lastpage: 9999}, bot, user)
+	return showProductInfo(product.ID, bot, user)
 }
 
 func handleEnterProductName(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	return nil
-}
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+		return err
+	}
 
-func handleEnterProductPool(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	return nil
+	product, found := user.Products[user.ActiveProductID]
+	if !found {
+		return fmt.Errorf("EnterProductName id %d user %d", product.ID, user.TelegramID)
+	}
+
+	product.Name = update.Message.Text
+	if err := user.UpdateProduct(product); err != nil {
+		return err
+	}
+
+	return showProductInfo(product.ID, bot, user)
 }
 
 func handleEnterMinPrice(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	return nil
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+		return err
+	}
+
+	product, found := user.Products[user.ActiveProductID]
+	if !found {
+		return fmt.Errorf("EnterMinPrice id %d user %d", product.ID, user.TelegramID)
+	}
+	value, _ := strconv.Atoi(update.Message.Text)
+	product.MinPrice = uint(value)
+
+	if err := user.UpdateProduct(product); err != nil {
+		return err
+	}
+
+	return showProductInfo(product.ID, bot, user)
 }
 
 func handleEnterMinBonuses(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	return nil
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+		return err
+	}
+
+	product, found := user.Products[user.ActiveProductID]
+	if !found {
+		return fmt.Errorf("MinBonuses id %d user %d", product.ID, user.TelegramID)
+	}
+
+	value, _ := strconv.Atoi(update.Message.Text)
+	product.MinBonuses = uint(value)
+
+	if err := user.UpdateProduct(product); err != nil {
+		return err
+	}
+
+	return showProductInfo(product.ID, bot, user)
 }
 
 func handleUserStates(bot *telego.Bot, update telego.Update) {
@@ -72,8 +114,6 @@ func handleUserStates(bot *telego.Bot, update telego.Update) {
 		err = handleEnterProductURL(user, bot, &update)
 	case protobufs.UserState_EnterProductName:
 		err = handleEnterProductName(user, bot, &update)
-	case protobufs.UserState_EnterProductPool:
-		err = handleEnterProductPool(user, bot, &update)
 	case protobufs.UserState_EnterMinPrice:
 		err = handleEnterMinPrice(user, bot, &update)
 	case protobufs.UserState_EnterMinBonuses:

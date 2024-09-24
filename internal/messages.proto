@@ -35,15 +35,15 @@ enum ButtonID {
 
 	MainMenu = 8;
 	ChangeMenu = 9;
+	Nothing = 10;
 }
 
-message ListOfProdcutsData {
-	int32 page = 1;
+message ChangePage {
+	optional int64 newpage = 1;
 }
 
 message ProdcutData {
 	int64 id = 1;
-	int32 lastpage = 2;
 }
 
 message ButtonData {

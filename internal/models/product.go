@@ -10,6 +10,7 @@ type Product struct {
 	Name string `gorm:"type:varchar(64);"`
 	URL  string `gorm:"type:varchar(256);"`
 
+	Price  int
 	ShopID int
 
 	MinPrice   uint

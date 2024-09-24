@@ -15,9 +15,9 @@ import (
 
 func handleStartMenu(bot *telego.Bot, update telego.Update) {
 	user := getUser(&update)
-	if user.LastMsgID != 0 {
-		bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), user.LastMsgID))
-		user.LastMsgID = 0
+	if user.ActiveMsgID != 0 {
+		bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), user.ActiveMsgID))
+		user.ActiveMsgID = 0
 	}
 
 	res, err := bot.SendMessage(tu.Message(
@@ -26,7 +26,7 @@ func handleStartMenu(bot *telego.Bot, update telego.Update) {
 	).WithReplyMarkup(protobufs.BuildMainMenu()))
 
 	if err == nil {
-		user.LastMsgID = res.MessageID
+		user.ActiveMsgID = res.MessageID
 	}
 }
 

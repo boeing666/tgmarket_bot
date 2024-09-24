@@ -2,6 +2,7 @@ package protobufs
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -26,33 +27,31 @@ func ButtonProductList() telego.InlineKeyboardButton {
 }
 
 func ButtonMainMenu() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("↩️ На главную", ButtonID_ChangeMenu, &data)
+	return CreateButton("↩️ На главную", ButtonID_MainMenu, nil)
 }
 
 func ButtonSetMinimalPrice() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("💵 Установить минимальную цену", ButtonID_MainMenu, &data)
+	return CreateButton("💵 Установить минимальную цену", ButtonID_SetMinPrice, nil)
 }
 
 func ButtonSetMinimalBonuses() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("❇️Установить минимальные бонусы", ButtonID_MainMenu, &data)
+	return CreateButton("❇️Установить минимальные бонусы", ButtonID_SetMinBonuses, nil)
 }
 
 func ButtonSetProductName() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("✏️ Изменить имя товара", ButtonID_MainMenu, &data)
+	return CreateButton("✏️ Изменить имя товара", ButtonID_ChangeProductName, nil)
 }
 
 func ButtonDeleteProduct() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("🗑️ Удалить Товар", ButtonID_MainMenu, &data)
+	return CreateButton("🗑️ Удалить Товар", ButtonID_DeleteProduct, nil)
 }
 
 func ButtonCancel() telego.InlineKeyboardButton {
-	data := ButtonData{Id: ButtonID_MainMenu}
-	return CreateButton("❌ Отменить ввод", ButtonID_MainMenu, &data)
+	return CreateButton("❌ Отменить ввод", ButtonID_MainMenu, nil)
+}
+
+func ButtonCancelProduct(id int64) telego.InlineKeyboardButton {
+	return CreateButton("❌ Отменить ввод", ButtonID_ProductInfo, &ProdcutData{Id: id})
 }
 
 func ButtonBack(newmenu ButtonID, msg proto.Message) telego.InlineKeyboardButton {
@@ -67,9 +66,13 @@ func ButtonBack(newmenu ButtonID, msg proto.Message) telego.InlineKeyboardButton
 
 func CreateButton(name string, btnID ButtonID, msg proto.Message) telego.InlineKeyboardButton {
 	var bytes []byte
+	var err error
 
 	if msg != nil {
-		bytes, _ = proto.Marshal(msg)
+		bytes, err = proto.Marshal(msg)
+		if err != nil {
+			fmt.Print(err)
+		}
 	}
 
 	button := ButtonData{Id: btnID, Data: bytes}
@@ -80,7 +83,5 @@ func CreateButton(name string, btnID ButtonID, msg proto.Message) telego.InlineK
 }
 
 func CreateRowButton(name string, messageID ButtonID, msg proto.Message) []telego.InlineKeyboardButton {
-	return tu.InlineKeyboardRow(
-		CreateButton(name, messageID, msg),
-	)
+	return tu.InlineKeyboardRow(CreateButton(name, messageID, msg))
 }
