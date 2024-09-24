@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"sort"
 	"strings"
-	"tgmarket/internal/cache"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -51,11 +50,6 @@ func getShopName(shop protobufs.Shops) string {
 	default:
 		return "Неизвестный"
 	}
-}
-
-func getUser(update *telego.Update) *cache.User {
-	ctx := update.Context()
-	return ctx.Value("user").(*cache.User)
 }
 
 func buildMenuHeader(menu menuInfo) []telego.InlineKeyboardButton {

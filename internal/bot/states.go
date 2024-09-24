@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"tgmarket/internal/cache"
@@ -10,17 +11,27 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 )
 
-func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID))
+type stateHandler func(data messageContext) error
+
+var stateCallbacks map[protobufs.UserState]stateHandler
+
+func handleEnterProductURL(data messageContext) error {
+	user := data.GetUser()
+	bot := data.GetBot()
+	chatid := tu.ID(user.TelegramID)
+
+	if err := bot.DeleteMessage(tu.Delete(chatid, data.GetMessageID())); err != nil {
+		return err
+	}
 
 	keyboard := tu.InlineKeyboard(
 		tu.InlineKeyboardRow(protobufs.ButtonCancel()),
 	)
 
-	market := detectMarketplace(update.Message.Text)
+	market := detectMarketplace(data.GetMessageText())
 	if market == protobufs.Shops_UnknownShop {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:      tu.ID(update.Message.Chat.ID),
+			ChatID:      chatid,
 			Text:        errorInProductURLText(),
 			MessageID:   user.ActiveMsgID,
 			ReplyMarkup: keyboard,
@@ -28,10 +39,10 @@ func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Upd
 		return nil
 	}
 
-	product, err := user.AddProduct(int(market), update.Message.Text)
+	product, err := user.AddProduct(int(market), data.GetMessageText())
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:      tu.ID(update.Message.Chat.ID),
+			ChatID:      chatid,
 			Text:        errorAddProductToDBText(),
 			MessageID:   user.ActiveMsgID,
 			ReplyMarkup: keyboard,
@@ -43,8 +54,11 @@ func handleEnterProductURL(user *cache.User, bot *telego.Bot, update *telego.Upd
 	return showProductInfo(product.ID, bot, user)
 }
 
-func handleEnterProductName(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+func handleEnterProductName(data messageContext) error {
+	user := data.GetUser()
+	bot := data.GetBot()
+
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(user.TelegramID), data.GetMessageID())); err != nil {
 		return err
 	}
 
@@ -53,7 +67,7 @@ func handleEnterProductName(user *cache.User, bot *telego.Bot, update *telego.Up
 		return fmt.Errorf("EnterProductName id %d user %d", product.ID, user.TelegramID)
 	}
 
-	product.Name = update.Message.Text
+	product.Name = data.GetMessageText()
 	if err := user.UpdateProduct(product); err != nil {
 		return err
 	}
@@ -61,8 +75,11 @@ func handleEnterProductName(user *cache.User, bot *telego.Bot, update *telego.Up
 	return showProductInfo(product.ID, bot, user)
 }
 
-func handleEnterMinPrice(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+func handleEnterMinPrice(data messageContext) error {
+	user := data.GetUser()
+	bot := data.GetBot()
+
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(user.TelegramID), data.GetMessageID())); err != nil {
 		return err
 	}
 
@@ -70,7 +87,8 @@ func handleEnterMinPrice(user *cache.User, bot *telego.Bot, update *telego.Updat
 	if !found {
 		return fmt.Errorf("EnterMinPrice id %d user %d", product.ID, user.TelegramID)
 	}
-	value, _ := strconv.Atoi(update.Message.Text)
+
+	value, _ := strconv.Atoi(data.GetMessageText())
 	product.MinPrice = uint(value)
 
 	if err := user.UpdateProduct(product); err != nil {
@@ -80,8 +98,11 @@ func handleEnterMinPrice(user *cache.User, bot *telego.Bot, update *telego.Updat
 	return showProductInfo(product.ID, bot, user)
 }
 
-func handleEnterMinBonuses(user *cache.User, bot *telego.Bot, update *telego.Update) error {
-	if err := bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), update.Message.MessageID)); err != nil {
+func handleEnterMinBonuses(data messageContext) error {
+	user := data.GetUser()
+	bot := data.GetBot()
+
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(user.TelegramID), data.GetMessageID())); err != nil {
 		return err
 	}
 
@@ -90,7 +111,7 @@ func handleEnterMinBonuses(user *cache.User, bot *telego.Bot, update *telego.Upd
 		return fmt.Errorf("MinBonuses id %d user %d", product.ID, user.TelegramID)
 	}
 
-	value, _ := strconv.Atoi(update.Message.Text)
+	value, _ := strconv.Atoi(data.GetMessageText())
 	product.MinBonuses = uint(value)
 
 	if err := user.UpdateProduct(product); err != nil {
@@ -100,27 +121,32 @@ func handleEnterMinBonuses(user *cache.User, bot *telego.Bot, update *telego.Upd
 	return showProductInfo(product.ID, bot, user)
 }
 
-func handleUserStates(bot *telego.Bot, update telego.Update) {
-	ctx := update.Context()
+func handleUserStates(ctx context.Context, bot *telego.Bot, message telego.Message) {
 	user := ctx.Value("user").(*cache.User)
-
 	if user.State == protobufs.UserState_None {
 		return
 	}
 
-	var err error
-	switch user.State {
-	case protobufs.UserState_EnterProductURL:
-		err = handleEnterProductURL(user, bot, &update)
-	case protobufs.UserState_EnterProductName:
-		err = handleEnterProductName(user, bot, &update)
-	case protobufs.UserState_EnterMinPrice:
-		err = handleEnterMinPrice(user, bot, &update)
-	case protobufs.UserState_EnterMinBonuses:
-		err = handleEnterMinBonuses(user, bot, &update)
+	if callback, ok := stateCallbacks[user.State]; ok {
+		data := messageData{
+			baseContext: baseContext{
+				bot:  bot,
+				user: user,
+			},
+			messageid:   message.MessageID,
+			messagetext: message.Text,
+		}
+		if err := callback(&data); err != nil {
+			fmt.Println(err)
+		}
 	}
+}
 
-	if err != nil {
-		fmt.Println(err)
-	}
+func registerStates() {
+	stateCallbacks = make(map[protobufs.UserState]stateHandler)
+
+	stateCallbacks[protobufs.UserState_EnterProductURL] = handleEnterProductURL
+	stateCallbacks[protobufs.UserState_EnterProductName] = handleEnterProductName
+	stateCallbacks[protobufs.UserState_EnterMinPrice] = handleEnterMinPrice
+	stateCallbacks[protobufs.UserState_EnterMinBonuses] = handleEnterMinBonuses
 }

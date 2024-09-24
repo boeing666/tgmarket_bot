@@ -7,33 +7,38 @@ import (
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"google.golang.org/protobuf/proto"
 )
 
-func callbackAddProduct(ctx callbackContext) error {
-	ctx.EditLastMessage(addNewProductText(),
+type callbackHandler func(data messageContext) error
+
+var buttonCallbacks map[protobufs.ButtonID]callbackHandler
+
+func callbackAddProduct(data messageContext) error {
+	data.EditLastMessage(addNewProductText(),
 		tu.InlineKeyboard(
 			tu.InlineKeyboardRow(protobufs.ButtonCancel()),
 		),
 	)
-	ctx.GetUser().State = protobufs.UserState_EnterProductURL
+	data.GetUser().State = protobufs.UserState_EnterProductURL
 	return nil
 }
 
-func callbackProductInfo(ctx callbackContext) error {
+func callbackProductInfo(data messageContext) error {
 	var msg protobufs.ProdcutData
-	if err := ctx.Unmarshal(&msg); err != nil {
+	if err := proto.Unmarshal(data.GetCallbackData(), &msg); err != nil {
 		return err
 	}
 
-	return showProductInfo(msg.Id, ctx.Bot, ctx.GetUser())
+	return showProductInfo(msg.GetId(), data.GetBot(), data.GetUser())
 }
 
-func callbackListOfProducts(ctx callbackContext) error {
-	user := ctx.GetUser()
+func callbackListOfProducts(data messageContext) error {
+	user := data.GetUser()
 
-	if ctx.Data != nil {
+	if data.GetCallbackData() != nil {
 		var msg protobufs.ChangePage
-		if err := ctx.Unmarshal(&msg); err != nil {
+		if err := proto.Unmarshal(data.GetCallbackData(), &msg); err != nil {
 			return err
 		}
 		user.LastPage = int(*msg.Newpage)
@@ -64,14 +69,14 @@ func callbackListOfProducts(ctx callbackContext) error {
 	)
 
 	user.LastPage = menuInfo.page
-	_, err := ctx.EditLastMessage(listOfProductsText(), &telego.InlineKeyboardMarkup{InlineKeyboard: rows})
+	_, err := data.EditLastMessage(listOfProductsText(), &telego.InlineKeyboardMarkup{InlineKeyboard: rows})
 	return err
 }
 
-func callbackSetMinPrice(ctx callbackContext) error {
-	user := ctx.GetUser()
+func callbackSetMinPrice(data messageContext) error {
+	user := data.GetUser()
 	user.State = protobufs.UserState_EnterMinPrice
-	_, err := ctx.EditLastMessage(enterMinProductPriceText(),
+	_, err := data.EditLastMessage(enterMinProductPriceText(),
 		tu.InlineKeyboard(
 			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
 		),
@@ -79,10 +84,10 @@ func callbackSetMinPrice(ctx callbackContext) error {
 	return err
 }
 
-func callbackSetMinBonuses(ctx callbackContext) error {
-	user := ctx.GetUser()
+func callbackSetMinBonuses(data messageContext) error {
+	user := data.GetUser()
 	user.State = protobufs.UserState_EnterMinBonuses
-	_, err := ctx.EditLastMessage(enterMinProductBonuses(),
+	_, err := data.EditLastMessage(enterMinProductBonuses(),
 		tu.InlineKeyboard(
 			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
 		),
@@ -90,10 +95,10 @@ func callbackSetMinBonuses(ctx callbackContext) error {
 	return err
 }
 
-func callbackChangeProductName(ctx callbackContext) error {
-	user := ctx.GetUser()
+func callbackChangeProductName(data messageContext) error {
+	user := data.GetUser()
 	user.State = protobufs.UserState_EnterProductName
-	_, err := ctx.EditLastMessage(enterProductNameText(),
+	_, err := data.EditLastMessage(enterProductNameText(),
 		tu.InlineKeyboard(
 			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
 		),
@@ -101,8 +106,8 @@ func callbackChangeProductName(ctx callbackContext) error {
 	return err
 }
 
-func callbackDeleteProduct(ctx callbackContext) error {
-	user := ctx.GetUser()
+func callbackDeleteProduct(data messageContext) error {
+	user := data.GetUser()
 	product, found := user.Products[user.ActiveProductID]
 	if !found {
 		return fmt.Errorf("DeleteProduct id %d user %d", product.ID, user.TelegramID)
@@ -113,36 +118,32 @@ func callbackDeleteProduct(ctx callbackContext) error {
 	}
 
 	if user.LastPage != -1 {
-		callbackListOfProducts(ctx)
+		return callbackListOfProducts(data)
 	} else {
-		callbackMainMenu(ctx)
+		return callbackMainMenu(data)
 	}
-
-	return nil
 }
 
-func callbackMainMenu(ctx callbackContext) error {
-	user := ctx.GetUser()
-	user.State = protobufs.UserState_None
-	_, err := ctx.EditLastMessage(welcomeText(), protobufs.BuildMainMenu())
+func callbackMainMenu(data messageContext) error {
+	data.GetUser().State = protobufs.UserState_None
+	_, err := data.EditLastMessage(welcomeText(), protobufs.BuildMainMenu())
 	return err
 }
 
-func callbackChangeMenu(ctx callbackContext) error {
+func callbackChangeMenu(data messageContext) error {
 	var msg protobufs.ButtonData
-	if err := ctx.Unmarshal(&msg); err != nil {
+	if err := proto.Unmarshal(data.GetCallbackData(), &msg); err != nil {
 		return err
 	}
-	ctx.Data = msg.Data
-	return buttonCallbacks[msg.Id](ctx)
+	data.SetCallbackData(msg.Data)
+	return buttonCallbacks[msg.Id](data)
 }
 
-func callbackNothing(ctx callbackContext) error {
-	err := ctx.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-		CallbackQueryID: ctx.Update.CallbackQuery.ID,
+func callbackNothing(data messageContext) error {
+	return data.GetBot().AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		CallbackQueryID: data.GetCallbackQueryID(),
 		Text:            "Тут ничего нет!",
 	})
-	return err
 }
 
 func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
@@ -182,7 +183,7 @@ func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
 		tu.Entity(fmt.Sprintf("🗓️ Обновлен: %s\n", updateDate)),
 	)
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
+	_, err := bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:             tu.ID(user.TelegramID),
 		Text:               text,
 		MessageID:          user.ActiveMsgID,
@@ -191,5 +192,20 @@ func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
 		LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true},
 	})
 
-	return nil
+	return err
+}
+
+func registerButtons() {
+	buttonCallbacks = make(map[protobufs.ButtonID]callbackHandler)
+
+	buttonCallbacks[protobufs.ButtonID_AddProduct] = callbackAddProduct
+	buttonCallbacks[protobufs.ButtonID_ListOfProducts] = callbackListOfProducts
+	buttonCallbacks[protobufs.ButtonID_SetMinPrice] = callbackSetMinPrice
+	buttonCallbacks[protobufs.ButtonID_SetMinBonuses] = callbackSetMinBonuses
+	buttonCallbacks[protobufs.ButtonID_ChangeProductName] = callbackChangeProductName
+	buttonCallbacks[protobufs.ButtonID_DeleteProduct] = callbackDeleteProduct
+	buttonCallbacks[protobufs.ButtonID_ChangeMenu] = callbackChangeMenu
+	buttonCallbacks[protobufs.ButtonID_MainMenu] = callbackMainMenu
+	buttonCallbacks[protobufs.ButtonID_ProductInfo] = callbackProductInfo
+	buttonCallbacks[protobufs.ButtonID_Nothing] = callbackNothing
 }

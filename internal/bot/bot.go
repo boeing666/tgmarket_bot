@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"tgmarket/internal/app"
+	"tgmarket/internal/cache"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -14,7 +15,9 @@ import (
 )
 
 func handleStartMenu(bot *telego.Bot, update telego.Update) {
-	user := getUser(&update)
+	ctx := update.Context()
+	user := ctx.Value("user").(*cache.User)
+
 	if user.ActiveMsgID != 0 {
 		bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), user.ActiveMsgID))
 		user.ActiveMsgID = 0
@@ -30,25 +33,25 @@ func handleStartMenu(bot *telego.Bot, update telego.Update) {
 	}
 }
 
-func handleQueries(bot *telego.Bot, update telego.Update) {
-	msgdate := uint64(update.CallbackQuery.Message.GetDate())
+func handleQueries(ctx context.Context, bot *telego.Bot, query telego.CallbackQuery) {
+	msgdate := uint64(query.Message.GetDate())
 
 	app := app.GetApp()
 	if msgdate < app.LaunchTime {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    tu.ID(update.CallbackQuery.From.ID),
+			ChatID:    tu.ID(query.From.ID),
 			Text:      "Сообщение устарело, /start чтобы начать работать с ботом.",
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			MessageID: query.Message.GetMessageID(),
 		})
 		return
 	}
 
-	decode, err := base64.StdEncoding.DecodeString(update.CallbackQuery.Data)
+	decode, err := base64.StdEncoding.DecodeString(query.Data)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    tu.ID(update.CallbackQuery.From.ID),
+			ChatID:    tu.ID(query.From.ID),
 			Text:      "Ошибка обработки сообщения, начните заново /start.",
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			MessageID: query.Message.GetMessageID(),
 		})
 		return
 	}
@@ -57,17 +60,22 @@ func handleQueries(bot *telego.Bot, update telego.Update) {
 	err = proto.Unmarshal(decode, &message)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    tu.ID(update.CallbackQuery.From.ID),
+			ChatID:    tu.ID(query.From.ID),
 			Text:      "Ошибка обработки сообщения, начните заново /start.",
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			MessageID: query.Message.GetMessageID(),
 		})
 		return
 	}
 
 	if callback, ok := buttonCallbacks[message.Id]; ok {
-		ctx := callbackContext{bot, &update, message.Data}
-		err := callback(ctx)
-		if err != nil {
+		data := callbackData{
+			baseContext: baseContext{
+				bot:  bot,
+				user: ctx.Value("user").(*cache.User),
+			},
+			data: message.GetData(),
+		}
+		if err := callback(&data); err != nil {
 			fmt.Println(err)
 		}
 	}
@@ -102,6 +110,8 @@ func Run(token string) error {
 	}
 
 	initUsersCache()
+
+	registerStates()
 	registerButtons()
 
 	updates, _ := bot.UpdatesViaLongPolling(nil)
@@ -109,8 +119,8 @@ func Run(token string) error {
 
 	bh.Use(handleMiddleware)
 	bh.Handle(handleStartMenu, th.CommandEqual("start"))
-	bh.Handle(handleUserStates, th.AnyMessage())
-	bh.Handle(handleQueries, th.AnyCallbackQuery())
+	bh.HandleMessageCtx(handleUserStates)
+	bh.HandleCallbackQueryCtx(handleQueries)
 
 	defer bh.Stop()
 	defer bot.StopLongPolling()
