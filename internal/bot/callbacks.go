@@ -36,6 +36,13 @@ func callbackProductInfo(data messageContext) error {
 func callbackListOfProducts(data messageContext) error {
 	user := data.GetUser()
 
+	if len(user.Products) == 0 {
+		return data.GetBot().AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: data.GetCallbackQueryID(),
+			Text:            "Ваш список товаров пуст, добавьте что-нибудь!",
+		})
+	}
+
 	if data.GetCallbackData() != nil {
 		var msg protobufs.ChangePage
 		if err := proto.Unmarshal(data.GetCallbackData(), &msg); err != nil {
@@ -117,11 +124,11 @@ func callbackDeleteProduct(data messageContext) error {
 		return err
 	}
 
-	if user.LastPage != -1 {
-		return callbackListOfProducts(data)
-	} else {
+	if len(user.Products) == 0 {
 		return callbackMainMenu(data)
 	}
+
+	return callbackListOfProducts(data)
 }
 
 func callbackMainMenu(data messageContext) error {

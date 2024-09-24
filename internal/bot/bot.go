@@ -104,7 +104,7 @@ func handleMiddleware(bot *telego.Bot, update telego.Update, next th.Handler) {
 }
 
 func Run(token string) error {
-	bot, err := telego.NewBot(token, telego.WithDefaultDebugLogger())
+	bot, err := telego.NewBot(token)
 	if err != nil {
 		return err
 	}
