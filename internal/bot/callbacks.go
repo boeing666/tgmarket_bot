@@ -70,8 +70,14 @@ func callbackListOfProducts(data messageContext) error {
 		)
 	}
 
+	navigation := buildNavigation(menuInfo, protobufs.ButtonID_ListOfProducts)
+	if navigation != nil {
+		rows = append(rows,
+			navigation,
+		)
+	}
+
 	rows = append(rows,
-		buildNavigation(menuInfo, protobufs.ButtonID_ListOfProducts),
 		tu.InlineKeyboardRow(protobufs.ButtonBack(protobufs.ButtonID_MainMenu, nil)),
 	)
 
@@ -124,7 +130,7 @@ func callbackDeleteProduct(data messageContext) error {
 		return err
 	}
 
-	if len(user.Products) == 0 {
+	if len(user.Products) == 0 || user.LastPage == -1 {
 		return callbackMainMenu(data)
 	}
 
@@ -132,7 +138,9 @@ func callbackDeleteProduct(data messageContext) error {
 }
 
 func callbackMainMenu(data messageContext) error {
-	data.GetUser().State = protobufs.UserState_None
+	user := data.GetUser()
+	user.State = protobufs.UserState_None
+	user.LastPage = -1
 	_, err := data.EditLastMessage(welcomeText(), protobufs.BuildMainMenu())
 	return err
 }
@@ -164,21 +172,17 @@ func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
 	createDate := product.CreatedAt.Format("2006-01-02 15:04:05")
 	updateDate := product.UpdatedAt.Format("2006-01-02 15:04:05")
 
-	var backbutton []telego.InlineKeyboardButton
-	if user.LastPage != -1 {
-		backbutton = tu.InlineKeyboardRow(protobufs.ButtonBack(protobufs.ButtonID_ListOfProducts, nil))
-	} else {
-		backbutton = tu.InlineKeyboardRow(protobufs.ButtonBack(protobufs.ButtonID_MainMenu, nil))
-	}
-
-	keyboard := tu.InlineKeyboard(
+	keyboard := [][]telego.InlineKeyboardButton{
 		tu.InlineKeyboardRow(protobufs.ButtonSetMinimalPrice()),
 		tu.InlineKeyboardRow(protobufs.ButtonSetMinimalBonuses()),
 		tu.InlineKeyboardRow(protobufs.ButtonSetProductName()),
 		tu.InlineKeyboardRow(protobufs.ButtonDeleteProduct()),
-		backbutton,
-		tu.InlineKeyboardRow(protobufs.ButtonMainMenu()),
-	)
+	}
+
+	if user.LastPage != -1 {
+		keyboard = append(keyboard, tu.InlineKeyboardRow(protobufs.ButtonBack(protobufs.ButtonID_ListOfProducts, nil)))
+	}
+	keyboard = append(keyboard, tu.InlineKeyboardRow(protobufs.ButtonMainMenu()))
 
 	text, entities := tu.MessageEntities(
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
@@ -195,7 +199,7 @@ func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
 		Text:               text,
 		MessageID:          user.ActiveMsgID,
 		Entities:           entities,
-		ReplyMarkup:        keyboard,
+		ReplyMarkup:        &telego.InlineKeyboardMarkup{InlineKeyboard: keyboard},
 		LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true},
 	})
 

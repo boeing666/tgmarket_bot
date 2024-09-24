@@ -48,30 +48,13 @@ type messageData struct {
 	messagetext string
 }
 
-func (m *messageData) GetBot() *telego.Bot {
-	return m.bot
-}
-
-func (m *messageData) GetUser() *cache.User {
-	return m.user
-}
-
+func (m *messageData) GetBot() *telego.Bot         { return m.bot }
+func (m *messageData) GetUser() *cache.User        { return m.user }
 func (m *messageData) SetCallbackData(data []byte) {}
-func (m *messageData) GetCallbackData() []byte {
-	return nil
-}
-
-func (m *messageData) GetMessageID() int {
-	return m.messageid
-}
-
-func (m *messageData) GetMessageText() string {
-	return m.messagetext
-}
-
-func (m *messageData) GetCallbackQueryID() string {
-	return ""
-}
+func (m *messageData) GetCallbackData() []byte     { return nil }
+func (m *messageData) GetMessageID() int           { return m.messageid }
+func (m *messageData) GetMessageText() string      { return m.messagetext }
+func (m *messageData) GetCallbackQueryID() string  { return "" }
 
 type callbackData struct {
 	baseContext
@@ -80,30 +63,10 @@ type callbackData struct {
 	queryid string
 }
 
-func (c *callbackData) GetBot() *telego.Bot {
-	return c.bot
-}
-
-func (c *callbackData) GetUser() *cache.User {
-	return c.user
-}
-
-func (c *callbackData) SetCallbackData(data []byte) {
-	c.data = data
-}
-
-func (c *callbackData) GetCallbackData() []byte {
-	return c.data
-}
-
-func (c *callbackData) GetMessageID() int {
-	return 0
-}
-
-func (c *callbackData) GetMessageText() string {
-	return ""
-}
-
-func (c *callbackData) GetCallbackQueryID() string {
-	return c.queryid
-}
+func (c *callbackData) GetBot() *telego.Bot         { return c.bot }
+func (c *callbackData) GetUser() *cache.User        { return c.user }
+func (c *callbackData) SetCallbackData(data []byte) { c.data = data }
+func (c *callbackData) GetCallbackData() []byte     { return c.data }
+func (c *callbackData) GetMessageID() int           { return 0 }
+func (c *callbackData) GetMessageText() string      { return "" }
+func (c *callbackData) GetCallbackQueryID() string  { return c.queryid }

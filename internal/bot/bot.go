@@ -17,14 +17,15 @@ import (
 func handleStartMenu(bot *telego.Bot, update telego.Update) {
 	ctx := update.Context()
 	user := ctx.Value("user").(*cache.User)
+	chatid := tu.ID(update.Message.Chat.ID)
 
 	if user.ActiveMsgID != 0 {
-		bot.DeleteMessage(tu.Delete(tu.ID(update.Message.Chat.ID), user.ActiveMsgID))
+		bot.DeleteMessage(tu.Delete(chatid, user.ActiveMsgID))
 		user.ActiveMsgID = 0
 	}
 
 	res, err := bot.SendMessage(tu.Message(
-		tu.ID(update.Message.Chat.ID),
+		chatid,
 		welcomeText(),
 	).WithReplyMarkup(protobufs.BuildMainMenu()))
 
@@ -73,7 +74,8 @@ func handleQueries(ctx context.Context, bot *telego.Bot, query telego.CallbackQu
 				bot:  bot,
 				user: ctx.Value("user").(*cache.User),
 			},
-			data: message.GetData(),
+			data:    message.GetData(),
+			queryid: query.ID,
 		}
 		if err := callback(&data); err != nil {
 			fmt.Println(err)
@@ -104,7 +106,7 @@ func handleMiddleware(bot *telego.Bot, update telego.Update, next th.Handler) {
 }
 
 func Run(token string) error {
-	bot, err := telego.NewBot(token)
+	bot, err := telego.NewBot(token, telego.WithDefaultDebugLogger())
 	if err != nil {
 		return err
 	}
