@@ -177,6 +177,7 @@ func handleUserStates(ctx context.Context, bot *telego.Bot, message telego.Messa
 			messageid:   message.MessageID,
 			messagetext: message.Text,
 		}
+
 		if err := callback(&data); err != nil {
 			fmt.Println(err)
 		}

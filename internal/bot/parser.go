@@ -67,9 +67,15 @@ func marketParser(bot *telego.Bot) {
 		for _, user := range userscache.users {
 			for _, product := range user.Products {
 				productOffers, err := mm.GetOffers(product.ProductID)
-				if err != nil || !productOffers.IsAvailable {
+				if err != nil {
+					fmt.Printf("product %d error %s\n", product.ID, err.Error())
 					continue
 				}
+
+				if !productOffers.IsAvailable {
+					continue
+				}
+
 				price, bonus := findLowestPriceAndHighBonuses(productOffers)
 
 				if price != product.Price {
