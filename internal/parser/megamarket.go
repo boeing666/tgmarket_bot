@@ -22,16 +22,14 @@ func MegaMarket() *MegaParser {
 	return megamarket
 }
 
-func getAuth() string {
-	data := map[string]interface{}{
+func getAuth() map[string]any {
+	return map[string]any{
 		"locationId":  "50",
 		"appPlatform": "WEB",
 		"appVersion":  1710405202,
 		"experiments": nil,
 		"os":          "UNKNOWN_OS",
 	}
-	jsonData, _ := json.Marshal(data)
-	return string(jsonData)
 }
 
 func getHeaders() map[string]string {
@@ -73,6 +71,7 @@ func getProductInfo(goodsId string) string {
 	data := map[string]interface{}{
 		"goodsId":    goodsId,
 		"merchantId": "0",
+		"auth":       getAuth(),
 	}
 	jsonData, _ := json.Marshal(data)
 	return string(jsonData)
