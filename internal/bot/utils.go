@@ -24,12 +24,12 @@ func detectMarketplace(link string) protobufs.Shops {
 	}
 
 	switch {
-	case strings.Contains(parsedURL.Host, "market.yandex.ru"):
+	/*case strings.Contains(parsedURL.Host, "market.yandex.ru"):
 		return protobufs.Shops_YandexMarket
 	case strings.Contains(parsedURL.Host, "ozon.ru"):
 		return protobufs.Shops_Ozon
 	case strings.Contains(parsedURL.Host, "wildberries.ru"):
-		return protobufs.Shops_Wildberries
+		return protobufs.Shops_Wildberries*/
 	case strings.Contains(parsedURL.Host, "megamarket.ru"):
 		return protobufs.Shops_SberMegaMarket
 	}
@@ -102,13 +102,17 @@ func buildNavigation(menu menuInfo, messageID protobufs.ButtonID) []telego.Inlin
 	var buttons []telego.InlineKeyboardButton
 
 	if menu.page > 0 {
-		buttons = append(buttons, protobufs.CreateButton("⏪", messageID, &protobufs.ChangePage{Newpage: proto.Int64(0)}))
-		buttons = append(buttons, protobufs.CreateButton("⬅️", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.page - 1))}))
+		buttons = append(buttons,
+			protobufs.CreateButton("⏪", messageID, &protobufs.ChangePage{Newpage: proto.Int64(0)}),
+			protobufs.CreateButton("⬅️", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.page - 1))}),
+		)
 	}
 
 	if menu.page < menu.maxPages-1 {
-		buttons = append(buttons, protobufs.CreateButton("➡️", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.page + 1))}))
-		buttons = append(buttons, protobufs.CreateButton("⏩", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.maxPages))}))
+		buttons = append(buttons,
+			protobufs.CreateButton("➡️", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.page + 1))}),
+			protobufs.CreateButton("⏩", messageID, &protobufs.ChangePage{Newpage: proto.Int64(int64(menu.maxPages))}),
+		)
 	}
 
 	return buttons

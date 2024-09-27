@@ -187,7 +187,8 @@ func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
 	text, entities := tu.MessageEntities(
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
 		tu.Entity(fmt.Sprintf("🛒 Магазин: %s\n", getShopName(protobufs.Shops(product.ShopID)))),
-		tu.Entity(fmt.Sprintf("💰 Цена: %d руб\n", product.Price)),
+		tu.Entity(fmt.Sprintf("💰 Текущая цена: %d ₽\n", product.Price)),
+		tu.Entity(fmt.Sprintf("💰 Сумма бонусов: %d\n", product.Bonus)),
 		tu.Entity(fmt.Sprintf("💵 Мин цена: %d\n", product.MinPrice)),
 		tu.Entity(fmt.Sprintf("❇️ Мин кол-во бонусов: %d\n", product.MinBonuses)),
 		tu.Entity(fmt.Sprintf("🗓️ Добавлен: %s\n", createDate)),

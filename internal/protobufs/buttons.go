@@ -35,7 +35,7 @@ func ButtonSetMinimalPrice() telego.InlineKeyboardButton {
 }
 
 func ButtonSetMinimalBonuses() telego.InlineKeyboardButton {
-	return CreateButton("❇️Установить минимальные бонусы", ButtonID_SetMinBonuses, nil)
+	return CreateButton("❇️ Установить минимальные бонусы", ButtonID_SetMinBonuses, nil)
 }
 
 func ButtonSetProductName() telego.InlineKeyboardButton {

@@ -14,10 +14,10 @@ func addNewProductText() string {
 	return "➕🛒 *Добавьте Товар*\n" +
 		"Введите ссылку на товар, чтобы начать отслеживание цен и получать уведомления!\n\n" +
 		"🔍 *Поддерживаемые платформы:*\n" +
-		"🟡 Яндекс Маркет\n" +
+		//"🟡 Яндекс Маркет\n" +
 		"🟣 МегаМаркет\n" +
-		"🔵 OZON\n" +
-		"🎀 Wildberries\n\n" +
+		//"🔵 OZON\n" +
+		//"🎀 Wildberries\n\n" +
 		"Начните отслеживание уже сегодня и не пропустите лучшие предложения!"
 }
 
@@ -29,6 +29,10 @@ func errorInProductURLText() string {
 func errorAddProductToDBText() string {
 	return "🚫 Упс! Произошла ошибка при добавлении товара.\n" +
 		"Ошибка отправлена разработчикам, попробуйте добавить позже."
+}
+
+func errorProductAlreadyExist() string {
+	return "🚫 Упс! Товар уже добавлен в список.\n"
 }
 
 func listOfProductsText() string {

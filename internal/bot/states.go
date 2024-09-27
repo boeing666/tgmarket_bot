@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"tgmarket/internal/cache"
+	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -30,16 +31,38 @@ func handleEnterProductURL(data messageContext) error {
 
 	market := detectMarketplace(data.GetMessageText())
 	if market == protobufs.Shops_UnknownShop {
-		bot.EditMessageText(&telego.EditMessageTextParams{
+		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,
 			Text:        errorInProductURLText(),
 			MessageID:   user.ActiveMsgID,
 			ReplyMarkup: keyboard,
 		})
-		return nil
+		return err
 	}
 
-	product, err := user.AddProduct(int(market), data.GetMessageText())
+	productId, ok := parser.GetProductIDFromUrl(data.GetMessageText())
+	if !ok {
+		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:      chatid,
+			Text:        errorInProductURLText(),
+			MessageID:   user.ActiveMsgID,
+			ReplyMarkup: keyboard,
+		})
+		return err
+	}
+
+	product := user.FindProductByProductID(productId)
+	if product != nil {
+		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:      chatid,
+			Text:        errorProductAlreadyExist(),
+			MessageID:   user.ActiveMsgID,
+			ReplyMarkup: keyboard,
+		})
+		return err
+	}
+
+	product, err := user.AddProduct(int(market), data.GetMessageText(), productId)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,
@@ -89,7 +112,7 @@ func handleEnterMinPrice(data messageContext) error {
 	}
 
 	value, _ := strconv.Atoi(data.GetMessageText())
-	product.MinPrice = uint(value)
+	product.MinPrice = value
 
 	if err := user.UpdateProduct(product); err != nil {
 		return err
@@ -112,7 +135,7 @@ func handleEnterMinBonuses(data messageContext) error {
 	}
 
 	value, _ := strconv.Atoi(data.GetMessageText())
-	product.MinBonuses = uint(value)
+	product.MinBonuses = value
 
 	if err := user.UpdateProduct(product); err != nil {
 		return err

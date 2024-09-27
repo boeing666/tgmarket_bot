@@ -13,8 +13,36 @@ type usersCache struct {
 
 var userscache usersCache
 
-func initUsersCache() {
-	userscache.users = make(map[int64]*cache.User)
+func loadUsersCache() error {
+	ucache := make(map[int64]*cache.User)
+
+	db := app.GetDB()
+	var users []models.User
+
+	if err := db.Preload("Products").Find(&users).Error; err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		userCache := &cache.User{
+			ID:          user.ID,
+			TelegramID:  user.TelegramID,
+			State:       protobufs.UserState_None,
+			ActiveMsgID: 0,
+			Products:    make(map[int64]*models.Product),
+			LastPage:    -1,
+		}
+
+		for _, product := range user.Products {
+			userCache.Products[product.ID] = &product
+		}
+
+		ucache[user.TelegramID] = userCache
+	}
+
+	userscache.users = ucache
+
+	return nil
 }
 
 func (u usersCache) getUser(id int64) (*cache.User, error) {
@@ -42,6 +70,7 @@ func (u usersCache) getUser(id int64) (*cache.User, error) {
 		State:       protobufs.UserState_None,
 		ActiveMsgID: 0,
 		Products:    products,
+		LastPage:    -1,
 	}
 
 	u.users[id] = userdata

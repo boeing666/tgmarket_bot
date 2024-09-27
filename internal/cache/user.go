@@ -3,6 +3,7 @@ package cache
 import (
 	"tgmarket/internal/app"
 	"tgmarket/internal/models"
+	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 	"time"
 )
@@ -20,14 +21,44 @@ type User struct {
 	Products map[int64]*models.Product
 }
 
-func (u *User) AddProduct(shop int, url string) (*models.Product, error) {
+func (u *User) AddProduct(shop int, url string, productid string) (*models.Product, error) {
 	db := app.GetDB()
 
+	mm := parser.MegaMarket()
+	productInfo, err := mm.GetProductInfo(productid)
+	if err != nil {
+		return nil, err
+	}
+
+	productOffers, err := mm.GetOffers(productid)
+	if err != nil {
+		return nil, err
+	}
+
+	productPrice := 0
+	productBonus := 0
+	if len(productOffers.Offers) > 0 {
+		productPrice = productOffers.Offers[0].FinalPrice
+		productBonus = productOffers.Offers[0].BonusAmountFinalPrice
+		for _, offer := range productOffers.Offers {
+			if productPrice > offer.FinalPrice {
+				productPrice = offer.FinalPrice
+			}
+			if productBonus > offer.BonusAmountFinalPrice {
+				productBonus = offer.BonusAmountFinalPrice
+			}
+		}
+
+	}
+
 	product := models.Product{
-		Name:   "Имя не задано",
-		URL:    url,
-		ShopID: shop,
-		UserID: u.ID,
+		Name:      productInfo.Goods.Title,
+		Price:     productPrice,
+		Bonus:     productBonus,
+		ProductID: productid,
+		URL:       url,
+		ShopID:    shop,
+		UserID:    u.ID,
 	}
 
 	if err := db.Create(&product).Error; err != nil {
@@ -58,5 +89,14 @@ func (u *User) UpdateProduct(product *models.Product) error {
 	}
 
 	u.Products[product.ID] = product
+	return nil
+}
+
+func (user *User) FindProductByProductID(productID string) *models.Product {
+	for _, product := range user.Products {
+		if product.ProductID == productID {
+			return product
+		}
+	}
 	return nil
 }
