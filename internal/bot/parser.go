@@ -52,7 +52,8 @@ func findLowestPriceAndHighBonuses(offers *parser.ProductOffers) (int, int) {
 	for _, offer := range offers.Offers {
 		if lowestPrice >= offer.FinalPrice {
 			lowestPrice = offer.FinalPrice
-		} else if highestBonuses < offer.BonusAmountFinalPrice {
+		}
+		if highestBonuses < offer.BonusAmountFinalPrice {
 			highestBonuses = offer.BonusAmountFinalPrice
 		}
 	}

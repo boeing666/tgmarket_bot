@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"tgmarket/internal/cache"
+	"tgmarket/internal/models"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -15,13 +16,32 @@ type callbackHandler func(data messageContext) error
 var buttonCallbacks map[protobufs.ButtonID]callbackHandler
 
 func callbackAddProduct(data messageContext) error {
+	button := protobufs.ButtonCancel(protobufs.ButtonID_MainMenu, nil)
 	data.EditLastMessage(addNewProductText(),
 		tu.InlineKeyboard(
-			tu.InlineKeyboardRow(protobufs.ButtonCancel()),
+			tu.InlineKeyboardRow(button),
 		),
 	)
 	data.GetUser().State = protobufs.UserState_EnterProductURL
 	return nil
+}
+
+func callbackSearchByName(data messageContext) error {
+	button := protobufs.ButtonCancel(protobufs.ButtonID_ListOfProducts, nil)
+	data.EditLastMessage(enterProductNameForFilter(),
+		tu.InlineKeyboard(
+			tu.InlineKeyboardRow(button),
+		),
+	)
+	data.GetUser().State = protobufs.UserState_EnterPartialProductName
+	return nil
+}
+
+func callbackRemoveFilterByName(data messageContext) error {
+	user := data.GetUser()
+	user.FilterName = ""
+	user.FiltredProducts = make(map[int64]*models.Product)
+	return callbackListOfProducts(data)
 }
 
 func callbackProductInfo(data messageContext) error {
@@ -35,6 +55,7 @@ func callbackProductInfo(data messageContext) error {
 
 func callbackListOfProducts(data messageContext) error {
 	user := data.GetUser()
+	user.State = protobufs.UserState_None
 
 	if len(user.Products) == 0 {
 		return data.GetBot().AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
@@ -52,15 +73,23 @@ func callbackListOfProducts(data messageContext) error {
 	}
 
 	var rows [][]telego.InlineKeyboardButton
-	products, menuInfo := buildPage(user.LastPage, user.Products)
 
-	header := buildMenuHeader(menuInfo)
+	var listOfProducts map[int64]*models.Product
+	if len(user.FilterName) != 0 {
+		listOfProducts = user.FiltredProducts
+	} else {
+		listOfProducts = user.Products
+	}
+
+	products, menuInfo := buildPage(user.LastPage, listOfProducts)
+
+	header := buildMenuHeader(user, menuInfo)
 	if header != nil {
-		rows = append(rows, buildMenuHeader(menuInfo))
+		rows = append(rows, header...)
 	}
 
 	for _, id := range products {
-		product := user.Products[id]
+		product := listOfProducts[id]
 		rows = append(rows,
 			protobufs.CreateRowButton(
 				fmt.Sprintf("%s (%s)", product.Name, getShopName(protobufs.Shops(product.ShopID))),
@@ -89,9 +118,13 @@ func callbackListOfProducts(data messageContext) error {
 func callbackSetMinPrice(data messageContext) error {
 	user := data.GetUser()
 	user.State = protobufs.UserState_EnterMinPrice
+	button := protobufs.ButtonCancel(
+		protobufs.ButtonID_ProductInfo,
+		&protobufs.ProdcutData{Id: user.ActiveProductID},
+	)
 	_, err := data.EditLastMessage(enterMinProductPriceText(),
 		tu.InlineKeyboard(
-			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
+			tu.InlineKeyboardRow(button),
 		),
 	)
 	return err
@@ -100,9 +133,13 @@ func callbackSetMinPrice(data messageContext) error {
 func callbackSetMinBonuses(data messageContext) error {
 	user := data.GetUser()
 	user.State = protobufs.UserState_EnterMinBonuses
+	button := protobufs.ButtonCancel(
+		protobufs.ButtonID_ProductInfo,
+		&protobufs.ProdcutData{Id: user.ActiveProductID},
+	)
 	_, err := data.EditLastMessage(enterMinProductBonuses(),
 		tu.InlineKeyboard(
-			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
+			tu.InlineKeyboardRow(button),
 		),
 	)
 	return err
@@ -111,9 +148,13 @@ func callbackSetMinBonuses(data messageContext) error {
 func callbackChangeProductName(data messageContext) error {
 	user := data.GetUser()
 	user.State = protobufs.UserState_EnterProductName
+	button := protobufs.ButtonCancel(
+		protobufs.ButtonID_ProductInfo,
+		&protobufs.ProdcutData{Id: user.ActiveProductID},
+	)
 	_, err := data.EditLastMessage(enterProductNameText(),
 		tu.InlineKeyboard(
-			tu.InlineKeyboardRow(protobufs.ButtonCancelProduct(user.ActiveProductID)),
+			tu.InlineKeyboardRow(button),
 		),
 	)
 	return err
@@ -162,6 +203,8 @@ func callbackNothing(data messageContext) error {
 }
 
 func showProductInfo(productID int64, bot *telego.Bot, user *cache.User) error {
+	user.State = protobufs.UserState_None
+
 	product, found := user.Products[productID]
 	if !found {
 		return fmt.Errorf("Not found product id %d user %d", productID, user.TelegramID)
@@ -219,5 +262,7 @@ func registerButtons() {
 	buttonCallbacks[protobufs.ButtonID_ChangeMenu] = callbackChangeMenu
 	buttonCallbacks[protobufs.ButtonID_MainMenu] = callbackMainMenu
 	buttonCallbacks[protobufs.ButtonID_ProductInfo] = callbackProductInfo
+	buttonCallbacks[protobufs.ButtonID_SearchByName] = callbackSearchByName
+	buttonCallbacks[protobufs.ButtonID_RemoveFilterByName] = callbackRemoveFilterByName
 	buttonCallbacks[protobufs.ButtonID_Nothing] = callbackNothing
 }

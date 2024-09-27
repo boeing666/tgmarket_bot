@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"tgmarket/internal/cache"
+	"tgmarket/internal/models"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -52,12 +54,35 @@ func getShopName(shop protobufs.Shops) string {
 	}
 }
 
-func buildMenuHeader(menu menuInfo) []telego.InlineKeyboardButton {
-	if menu.maxPages == 0 {
-		return nil
+func filterUserProducts(user *cache.User, name string) map[int64]*models.Product {
+	lowername := strings.ToLower(name)
+	filteredProducts := make(map[int64]*models.Product)
+	for _, product := range user.Products {
+		if strings.Contains(strings.ToLower(product.Name), lowername) {
+			filteredProducts[product.ID] = product
+		}
 	}
-	text := fmt.Sprintf("📄 Страница %d/%d", menu.page+1, menu.maxPages)
-	return protobufs.CreateRowButton(text, protobufs.ButtonID_Nothing, nil)
+	return filteredProducts
+}
+
+func buildMenuHeader(user *cache.User, menu menuInfo) [][]telego.InlineKeyboardButton {
+	var rows [][]telego.InlineKeyboardButton
+
+	if len(user.FilterName) == 0 {
+		rows = append(rows, protobufs.CreateRowButton("🔎 Поиск товара по имени", protobufs.ButtonID_SearchByName, nil))
+	} else {
+		text := fmt.Sprintf("🔎 Убрать поиск по имени (%s)", user.FilterName)
+		rows = append(rows, protobufs.CreateRowButton(text, protobufs.ButtonID_RemoveFilterByName, nil))
+	}
+
+	if menu.maxPages == 0 {
+		rows = append(rows, protobufs.CreateRowButton("🥺 Список товаров пуст, добавьте что-нибудь", protobufs.ButtonID_Nothing, nil))
+	} else {
+		text := fmt.Sprintf("📄 Страница %d/%d", menu.page+1, menu.maxPages)
+		rows = append(rows, protobufs.CreateRowButton(text, protobufs.ButtonID_Nothing, nil))
+	}
+
+	return rows
 }
 
 func buildPage[V any](curpage int, data map[int64]V) ([]int64, menuInfo) {

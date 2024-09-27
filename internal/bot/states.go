@@ -25,8 +25,9 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
+	button := protobufs.ButtonCancel(protobufs.ButtonID_MainMenu, nil)
 	keyboard := tu.InlineKeyboard(
-		tu.InlineKeyboardRow(protobufs.ButtonCancel()),
+		tu.InlineKeyboardRow(button),
 	)
 
 	market := detectMarketplace(data.GetMessageText())
@@ -73,7 +74,6 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	user.State = protobufs.UserState_None
 	return showProductInfo(product.ID, bot, user)
 }
 
@@ -144,9 +144,27 @@ func handleEnterMinBonuses(data messageContext) error {
 	return showProductInfo(product.ID, bot, user)
 }
 
+func handleEnterProductNameForSearch(data messageContext) error {
+	user := data.GetUser()
+	bot := data.GetBot()
+
+	if err := bot.DeleteMessage(tu.Delete(tu.ID(user.TelegramID), data.GetMessageID())); err != nil {
+		return err
+	}
+
+	user.FilterName = data.GetMessageText()
+	user.FiltredProducts = filterUserProducts(user, data.GetMessageText())
+
+	return callbackListOfProducts(data)
+}
+
 func handleUserStates(ctx context.Context, bot *telego.Bot, message telego.Message) {
 	user := ctx.Value("user").(*cache.User)
 	if user.State == protobufs.UserState_None {
+		bot.SendMessage(tu.Message(
+			tu.ID(user.TelegramID),
+			"Используйте /start, для начала работы с ботом",
+		))
 		return
 	}
 
@@ -172,4 +190,6 @@ func registerStates() {
 	stateCallbacks[protobufs.UserState_EnterProductName] = handleEnterProductName
 	stateCallbacks[protobufs.UserState_EnterMinPrice] = handleEnterMinPrice
 	stateCallbacks[protobufs.UserState_EnterMinBonuses] = handleEnterMinBonuses
+	stateCallbacks[protobufs.UserState_EnterMinBonuses] = handleEnterMinBonuses
+	stateCallbacks[protobufs.UserState_EnterPartialProductName] = handleEnterProductNameForSearch
 }

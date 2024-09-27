@@ -46,12 +46,8 @@ func ButtonDeleteProduct() telego.InlineKeyboardButton {
 	return CreateButton("🗑️ Удалить Товар", ButtonID_DeleteProduct, nil)
 }
 
-func ButtonCancel() telego.InlineKeyboardButton {
-	return CreateButton("❌ Отменить ввод", ButtonID_MainMenu, nil)
-}
-
-func ButtonCancelProduct(id int64) telego.InlineKeyboardButton {
-	return CreateButton("❌ Отменить ввод", ButtonID_ProductInfo, &ProdcutData{Id: id})
+func ButtonCancel(button ButtonID, msg proto.Message) telego.InlineKeyboardButton {
+	return CreateButton("❌ Отменить ввод", button, msg)
 }
 
 func ButtonBack(newmenu ButtonID, msg proto.Message) telego.InlineKeyboardButton {

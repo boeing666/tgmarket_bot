@@ -19,6 +19,9 @@ type User struct {
 	LastPage        int
 
 	Products map[int64]*models.Product
+
+	FilterName      string
+	FiltredProducts map[int64]*models.Product
 }
 
 func (u *User) AddProduct(shop int, url string, productid string) (*models.Product, error) {

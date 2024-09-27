@@ -19,6 +19,7 @@ enum UserState {
 	EnterProductPool = 3;
 	EnterMinPrice = 4;
 	EnterMinBonuses = 5;
+	EnterPartialProductName = 6;
 }
 
 enum ButtonID {
@@ -35,7 +36,9 @@ enum ButtonID {
 
 	MainMenu = 8;
 	ChangeMenu = 9;
-	Nothing = 10;
+	SearchByName = 10;
+	RemoveFilterByName = 11;
+	Nothing = 12;
 }
 
 message ChangePage {
