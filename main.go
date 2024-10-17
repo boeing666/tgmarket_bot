@@ -1,14 +1,14 @@
 package main
 
 import (
-	"tgmarket/internal/app"
-	"tgmarket/internal/bot"
-	"tgmarket/internal/config"
-	"tgmarket/internal/database"
+	"fmt"
+	"tgmarket/internal/parser"
+
+	"github.com/k0kubun/pp"
 )
 
 func main() {
-	config, err := config.Init()
+	/*config, err := config.Init()
 	if err != nil {
 		panic(err)
 	}
@@ -24,5 +24,12 @@ func main() {
 	err = bot.Run(config.APIToken)
 	if err != nil {
 		panic(err)
+	}*/
+
+	yandex := parser.YandexMarket()
+	info, err := yandex.GetProductInfo("https://market.yandex.ru/product--palto-coressi/621359582")
+	if err != nil {
+		fmt.Println(err)
 	}
+	pp.Println(info)
 }

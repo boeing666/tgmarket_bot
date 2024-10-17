@@ -93,10 +93,9 @@ func marketParser(bot *telego.Bot) {
 				}
 
 				user.UpdateProduct(product)
-				time.Sleep(5 * time.Second)
+				time.Sleep(time.Minute)
 			}
 			time.Sleep(time.Minute)
 		}
-		time.Sleep(time.Minute)
 	}
 }

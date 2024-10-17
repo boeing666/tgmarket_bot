@@ -13,6 +13,15 @@ require (
 )
 
 require (
+	github.com/antchfx/htmlquery v1.3.3 // indirect
+	github.com/antchfx/xpath v1.3.2 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/k0kubun/pp v3.0.1+incompatible // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
+)
+
+require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Danny-Dasilva/fhttp v0.0.0-20240217042913-eeeb0b347ce1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
@@ -29,6 +38,7 @@ require (
 	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/k0kubun/pp/v3 v3.3.0
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/quic-go/quic-go v0.41.0 // indirect
