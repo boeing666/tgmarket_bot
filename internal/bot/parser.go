@@ -5,7 +5,6 @@ import (
 	"tgmarket/internal/cache"
 	"tgmarket/internal/models"
 	"tgmarket/internal/parser"
-	"time"
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -62,7 +61,7 @@ func findLowestPriceAndHighBonuses(offers *parser.ProductOffers) (int, int) {
 }
 
 func marketParser(bot *telego.Bot) {
-	mm := parser.MegaMarket()
+	/*mm := parser.MegaMarket()
 	for {
 		for _, user := range userscache.users {
 			for _, product := range user.Products {
@@ -97,5 +96,5 @@ func marketParser(bot *telego.Bot) {
 			}
 			time.Sleep(time.Minute)
 		}
-	}
+	}*/
 }

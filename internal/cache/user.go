@@ -3,7 +3,6 @@ package cache
 import (
 	"tgmarket/internal/app"
 	"tgmarket/internal/models"
-	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 	"time"
 )
@@ -25,7 +24,7 @@ type User struct {
 }
 
 func (u *User) AddProduct(shop int, url string, productid string) (*models.Product, error) {
-	db := app.GetDB()
+	/*db := app.GetDB()
 
 	mm := parser.MegaMarket()
 	productInfo, err := mm.GetProductInfo(productid)
@@ -69,7 +68,8 @@ func (u *User) AddProduct(shop int, url string, productid string) (*models.Produ
 	}
 
 	u.Products[product.ID] = &product
-	return &product, nil
+	return &product, nil*/
+	return nil, nil
 }
 
 func (u *User) RemoveProduct(productID int64) error {
