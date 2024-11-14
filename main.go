@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"tgmarket/internal/parser"
-
-	"github.com/k0kubun/pp"
+	"regexp"
 )
 
 func main() {
@@ -26,10 +24,19 @@ func main() {
 		panic(err)
 	}*/
 
-	yandex := parser.YandexMarket()
-	info, err := yandex.GetProductInfo("https://market.yandex.ru/product--palto-coressi/621359582")
-	if err != nil {
-		fmt.Println(err)
+	urls := []string{
+		"https://www.ozon.ru/product/karikids-snegokat-dlina-99-sm-shirina-40-sm-202134869",
+		"https://www.ozon.ru/product/svitshot-1694117319/?avtc=1&avte=4&avts=1732014861",
+		"https://www.ozon.ru/product/mixit-skrab-dlya-tela-i-nog-antitsellyulitnyy-i-pitatelnyy-krem-batter-ot-rastyazhek-s-maslom-1077617414/?avtc=1&avte=4&avts=1732014861",
+		"https://www.ozon.ru/product/1234567890",
 	}
-	pp.Println(info)
+
+	re := regexp.MustCompile(`^((www.)|(https://www.)|(https://))*ozon.ru/product/.*?(\d{9,})`)
+
+	for _, url := range urls {
+		match := re.FindStringSubmatch(url)
+		if match != nil {
+			fmt.Println(match[5])
+		}
+	}
 }

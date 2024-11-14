@@ -3,23 +3,13 @@ package parser
 import (
 	"encoding/json"
 	"regexp"
-
-	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 )
 
-type MegaParser struct {
-	client cycletls.CycleTLS
-}
+type MegaMarket struct{}
 
-var megamarket *MegaParser
-
-func MegaMarket() *MegaParser {
-	if megamarket == nil {
-		megamarket = &MegaParser{
-			client: cycletls.Init(),
-		}
-	}
-	return megamarket
+func MM() *MegaMarket {
+	m := MegaMarket{}
+	return &m
 }
 
 func getAuth() map[string]any {
@@ -67,7 +57,7 @@ func getOffersForProduct(goodsId string) string {
 	return string(jsonData)
 }
 
-func getProductInfo(goodsId string) string {
+func generateJsonForProduct(goodsId string) string {
 	data := map[string]interface{}{
 		"goodsId":    goodsId,
 		"merchantId": "0",
@@ -77,8 +67,12 @@ func getProductInfo(goodsId string) string {
 	return string(jsonData)
 }
 
-func (c MegaParser) GetOffers(goodsId string) (*ProductOffers, error) {
-	res, err := c.request("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get", getOffersForProduct(goodsId))
+func (c MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
+	res, err :=
+		request("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
+			getHeaders(),
+			getOffersForProduct(goodsId),
+			"POST")
 	if err != nil {
 		return nil, err
 	}
@@ -88,11 +82,16 @@ func (c MegaParser) GetOffers(goodsId string) (*ProductOffers, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &data, nil
 }
 
-func (c MegaParser) GetProductInfo(goodsId string) (*ProductInfo, error) {
-	res, err := c.request("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get", getProductInfo(goodsId))
+func (c MegaMarket) GetProductInfo(goodsId string) (*MarketProduct, error) {
+	res, err :=
+		request("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get",
+			getHeaders(),
+			generateJsonForProduct(goodsId),
+			"POST")
 	if err != nil {
 		return nil, err
 	}
@@ -102,16 +101,45 @@ func (c MegaParser) GetProductInfo(goodsId string) (*ProductInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &data, nil
+
+	offers, err := c.getOffers(goodsId)
+	if err != nil {
+		return nil, err
+	}
+
+	price, bonus := findLowestPriceAndHighBonusesMM(offers)
+
+	var product MarketProduct
+	product.Title = data.Goods.Title
+	product.Price = price
+	product.Bonuses = bonus
+
+	return &product, nil
 }
 
-func (c MegaParser) request(url string, body string) (cycletls.Response, error) {
-	return c.client.Do(url, cycletls.Options{
-		Headers:   getHeaders(),
-		Body:      body,
-		Ja3:       "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,17513-27-5-65281-11-16-45-13-51-10-65037-35-43-23-18-0-41,29-23-24,0",
-		UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-	}, "POST")
+func findLowestPriceAndHighBonusesMM(offers *ProductOffers) (int, int) {
+	if !offers.IsAvailable {
+		return 0, 0
+	}
+
+	if len(offers.Offers) == 0 {
+		return 0, 0
+	}
+
+	lowestPrice := offers.Offers[0].FinalPrice
+	highestBonuses := offers.Offers[0].BonusAmountFinalPrice
+
+	for _, offer := range offers.Offers {
+		if lowestPrice >= offer.FinalPrice {
+			lowestPrice = offer.FinalPrice
+		}
+
+		if highestBonuses < offer.BonusAmountFinalPrice {
+			highestBonuses = offer.BonusAmountFinalPrice
+		}
+	}
+
+	return lowestPrice, highestBonuses
 }
 
 func GetProductIDFromUrl(url string) (string, bool) {
@@ -120,5 +148,6 @@ func GetProductIDFromUrl(url string) (string, bool) {
 	if len(res) == 0 {
 		return "", false
 	}
+
 	return res[0], true
 }
