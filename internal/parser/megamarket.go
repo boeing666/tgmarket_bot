@@ -2,22 +2,26 @@ package parser
 
 import (
 	"encoding/json"
+	"errors"
 	"regexp"
+	"strconv"
 )
 
-type MegaMarket struct{}
+type MegaMarket struct {
+	reId regexp.Regexp
+}
 
 func MM() *MegaMarket {
-	m := MegaMarket{}
-	return &m
+	return &MegaMarket{
+		reId: *regexp.MustCompile(`^https:\/\/megamarket\.ru\/catalog\/details\/.*?-(\d+)(?:\/|$)`),
+	}
 }
 
 func getAuth() map[string]any {
 	return map[string]any{
 		"locationId":  "50",
 		"appPlatform": "WEB",
-		"appVersion":  1710405202,
-		"experiments": nil,
+		"appVersion":  0,
 		"os":          "UNKNOWN_OS",
 	}
 }
@@ -67,7 +71,7 @@ func generateJsonForProduct(goodsId string) string {
 	return string(jsonData)
 }
 
-func (c MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
+func (m MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
 	res, err :=
 		request("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
 			getHeaders(),
@@ -86,7 +90,18 @@ func (c MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
 	return &data, nil
 }
 
-func (c MegaMarket) GetProductInfo(goodsId string) (*MarketProduct, error) {
+func (m MegaMarket) GetProductInfo(url string) (*MarketProduct, error) {
+	f := m.reId.FindStringSubmatch(url)
+	if len(f) < 2 {
+		return nil, errors.New("can't find item id")
+	}
+
+	goodsId := f[len(f)-1]
+	goodsIdInt, err := strconv.Atoi(goodsId)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err :=
 		request("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get",
 			getHeaders(),
@@ -102,7 +117,11 @@ func (c MegaMarket) GetProductInfo(goodsId string) (*MarketProduct, error) {
 		return nil, err
 	}
 
-	offers, err := c.getOffers(goodsId)
+	if !data.Success {
+		return nil, errors.New("api success false")
+	}
+
+	offers, err := m.getOffers(goodsId)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +132,7 @@ func (c MegaMarket) GetProductInfo(goodsId string) (*MarketProduct, error) {
 	product.Title = data.Goods.Title
 	product.Price = price
 	product.Bonuses = bonus
+	product.ID = goodsIdInt
 
 	return &product, nil
 }
@@ -140,14 +160,4 @@ func findLowestPriceAndHighBonusesMM(offers *ProductOffers) (int, int) {
 	}
 
 	return lowestPrice, highestBonuses
-}
-
-func GetProductIDFromUrl(url string) (string, bool) {
-	regex := regexp.MustCompile(`(\d{12})(?:_(\d{5}))?`)
-	res := regex.FindStringSubmatch(url)
-	if len(res) == 0 {
-		return "", false
-	}
-
-	return res[0], true
 }

@@ -20,7 +20,7 @@ func Wb() *Wildberries {
 	return &p
 }
 
-func (w Wildberries) GetProductInfo(url string, err error) (*MarketProduct, error) {
+func (w Wildberries) GetProductInfo(url string) (*MarketProduct, error) {
 	f := w.reId.FindStringSubmatch(url)
 	if len(f) < 2 {
 		return nil, errors.New("can't find item id")
@@ -53,6 +53,7 @@ func (w Wildberries) GetProductInfo(url string, err error) (*MarketProduct, erro
 	var product MarketProduct
 	product.Title = wbProduct.Name
 	product.Price = wbProduct.Sizes[0].Price.Total / 100.0
+	product.ID = wbProduct.ID
 
 	return &product, err
 }

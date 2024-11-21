@@ -1,11 +1,12 @@
 package parser
 
 type MarketProduct struct {
+	ID      int
 	Price   int
 	Bonuses int
 	Title   string
 }
 
 type Parser interface {
-	GetProductInfo(url string, err error) *MarketProduct
+	GetProductInfo(url string) (*MarketProduct, error)
 }

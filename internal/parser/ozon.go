@@ -20,7 +20,7 @@ func OZ() *Ozon {
 	return &p
 }
 
-func (m Ozon) GetProductInfo(url string, err error) (*MarketProduct, error) {
+func (m Ozon) GetProductInfo(url string) (*MarketProduct, error) {
 	apiurl := fmt.Sprintf(m.urlTemplate, url)
 
 	res, err := request(apiurl, nil, "", "GET")

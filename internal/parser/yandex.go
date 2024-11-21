@@ -3,20 +3,29 @@ package parser
 import (
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
 )
 
-type YandexParser struct{}
-
-func Yandex() *YandexParser {
-	y := YandexParser{}
-	return &y
+type YandexParser struct {
+	reId regexp.Regexp
 }
 
-func (c YandexParser) GetProductInfo(url string, err error) (*MarketProduct, error) {
+func Yandex() *YandexParser {
+	return &YandexParser{
+		reId: *regexp.MustCompile(`^https://market\.yandex\.ru/product--.*?\/([0-9]+)(\?.*)?$`),
+	}
+}
+
+func (y YandexParser) GetProductInfo(url string) (*MarketProduct, error) {
+	f := y.reId.FindStringSubmatch(url)
+	if len(f) < 2 {
+		return nil, errors.New("can't find item id")
+	}
+
 	res, err := request(url, nil, "", "GET")
 	if err != nil {
 		return nil, err
@@ -53,6 +62,7 @@ func findOfferInfo(doc *html.Node) (*MarketProduct, error) {
 	var product MarketProduct
 	product.Title = htmlquery.InnerText(title[0])
 	product.Price = offerData.PriceDetails.Price.Value
+	product.ID = offerData.ProductID
 
 	return &product, nil
 }
