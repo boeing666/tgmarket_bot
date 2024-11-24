@@ -116,7 +116,7 @@ func Run(token string) error {
 	registerStates()
 	registerButtons()
 
-	go marketParser(bot)
+	go marketsParser(bot)
 
 	updates, _ := bot.UpdatesViaLongPolling(nil)
 	bh, _ := th.NewBotHandler(bot, updates)

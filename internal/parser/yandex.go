@@ -14,8 +14,8 @@ type YandexParser struct {
 	reId regexp.Regexp
 }
 
-func Yandex() *YandexParser {
-	return &YandexParser{
+func Yandex() YandexParser {
+	return YandexParser{
 		reId: *regexp.MustCompile(`^https://market\.yandex\.ru/product--.*?\/([0-9]+)(\?.*)?$`),
 	}
 }

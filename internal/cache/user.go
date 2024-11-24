@@ -3,6 +3,7 @@ package cache
 import (
 	"tgmarket/internal/app"
 	"tgmarket/internal/models"
+	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 	"time"
 )
@@ -24,40 +25,18 @@ type User struct {
 }
 
 func (u *User) AddProduct(shop int, url string, productid string) (*models.Product, error) {
-	/*db := app.GetDB()
+	db := app.GetDB()
 
-	mm := parser.MegaMarket()
-	productInfo, err := mm.GetProductInfo(productid)
+	productInfo, err := parser.GetProductInfo(url)
 	if err != nil {
 		return nil, err
-	}
-
-	productOffers, err := mm.GetOffers(productid)
-	if err != nil {
-		return nil, err
-	}
-
-	productPrice := 0
-	productBonus := 0
-	if len(productOffers.Offers) > 0 {
-		productPrice = productOffers.Offers[0].FinalPrice
-		productBonus = productOffers.Offers[0].BonusAmountFinalPrice
-		for _, offer := range productOffers.Offers {
-			if productPrice > offer.FinalPrice {
-				productPrice = offer.FinalPrice
-			}
-			if productBonus > offer.BonusAmountFinalPrice {
-				productBonus = offer.BonusAmountFinalPrice
-			}
-		}
-
 	}
 
 	product := models.Product{
-		Name:      productInfo.Goods.Title,
-		Price:     productPrice,
-		Bonus:     productBonus,
-		ProductID: productid,
+		Name:      productInfo.Title,
+		Price:     productInfo.Price,
+		Bonus:     productInfo.Bonuses,
+		ProductID: string(productInfo.ID),
 		URL:       url,
 		ShopID:    shop,
 		UserID:    u.ID,
@@ -68,8 +47,7 @@ func (u *User) AddProduct(shop int, url string, productid string) (*models.Produ
 	}
 
 	u.Products[product.ID] = &product
-	return &product, nil*/
-	return nil, nil
+	return &product, nil
 }
 
 func (u *User) RemoveProduct(productID int64) error {

@@ -5,6 +5,7 @@ import (
 	"tgmarket/internal/cache"
 	"tgmarket/internal/models"
 	"tgmarket/internal/parser"
+	"time"
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -60,34 +61,27 @@ func findLowestPriceAndHighBonuses(offers *parser.ProductOffers) (int, int) {
 	return lowestPrice, highestBonuses
 }
 
-func marketParser(bot *telego.Bot) {
-	/*mm := parser.MegaMarket()
+func marketsParser(bot *telego.Bot) {
 	for {
 		for _, user := range userscache.users {
 			for _, product := range user.Products {
-				productOffers, err := mm.GetOffers(product.ProductID)
+				updatedProduct, err := parser.GetProductInfo(product.URL)
 				if err != nil {
 					fmt.Printf("product %d error %s\n", product.ID, err.Error())
 					continue
 				}
 
-				if !productOffers.IsAvailable {
-					continue
-				}
-
-				price, bonus := findLowestPriceAndHighBonuses(productOffers)
-
-				if price != product.Price {
-					product.Price = price
-					if product.MinPrice >= price {
+				if updatedProduct.Price != product.Price {
+					product.Price = updatedProduct.Price
+					if product.Price <= product.MinPrice {
 						sendMinPriceMessage(user, bot, product)
 					}
 				}
 
-				if bonus != product.Bonus {
-					product.Bonus = bonus
-					if product.MinBonuses <= bonus {
-						sendMinBonusesMessage(user, bot, product, bonus)
+				if updatedProduct.Bonuses != product.Bonus {
+					product.Bonus = updatedProduct.Bonuses
+					if product.Bonus >= product.MinBonuses {
+						sendMinBonusesMessage(user, bot, product, updatedProduct.Bonuses)
 					}
 				}
 
@@ -96,5 +90,5 @@ func marketParser(bot *telego.Bot) {
 			}
 			time.Sleep(time.Minute)
 		}
-	}*/
+	}
 }

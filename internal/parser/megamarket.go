@@ -11,8 +11,8 @@ type MegaMarket struct {
 	reId regexp.Regexp
 }
 
-func MM() *MegaMarket {
-	return &MegaMarket{
+func MM() MegaMarket {
+	return MegaMarket{
 		reId: *regexp.MustCompile(`^https:\/\/megamarket\.ru\/catalog\/details\/.*?-(\d+)(?:\/|$)`),
 	}
 }

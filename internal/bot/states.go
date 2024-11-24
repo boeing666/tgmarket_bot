@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"tgmarket/internal/cache"
+	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -16,7 +17,7 @@ type stateHandler func(data messageContext) error
 var stateCallbacks map[protobufs.UserState]stateHandler
 
 func handleEnterProductURL(data messageContext) error {
-	/*user := data.GetUser()
+	user := data.GetUser()
 	bot := data.GetBot()
 	chatid := tu.ID(user.TelegramID)
 
@@ -40,8 +41,8 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	productId, ok := parser.GetProductIDFromUrl(data.GetMessageText())
-	if !ok {
+	productInfo, err := parser.GetProductInfo(data.GetMessageText())
+	if err != nil {
 		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,
 			Text:        errorInProductURLText(),
@@ -51,7 +52,8 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	product := user.FindProductByProductID(productId)
+	productID := string(productInfo.ID)
+	product := user.FindProductByProductID(productID)
 	if product != nil {
 		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,
@@ -62,7 +64,7 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	product, err := user.AddProduct(int(market), data.GetMessageText(), productId)
+	product, err = user.AddProduct(int(market), data.GetMessageText(), productID)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,
@@ -73,8 +75,7 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	return showProductInfo(product.ID, bot, user)*/
-	return nil
+	return showProductInfo(product.ID, bot, user)
 }
 
 func handleEnterProductName(data messageContext) error {

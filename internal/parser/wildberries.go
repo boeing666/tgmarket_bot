@@ -12,12 +12,11 @@ type Wildberries struct {
 	reId        regexp.Regexp
 }
 
-func Wb() *Wildberries {
-	p := Wildberries{
+func WB() Wildberries {
+	return Wildberries{
 		urlTemplate: "https://card.wb.ru/cards/v2/detail?appType=1&curr=rub&dest=-5818883&ab_testing=false&nm=%s",
 		reId:        *regexp.MustCompile(`^((www.)|(https://www.)|(https://))*wildberries.ru/catalog/(\d+)\S*\z`),
 	}
-	return &p
 }
 
 func (w Wildberries) GetProductInfo(url string) (*MarketProduct, error) {

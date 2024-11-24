@@ -14,12 +14,11 @@ type Ozon struct {
 	reId        regexp.Regexp
 }
 
-func OZ() *Ozon {
-	p := Ozon{
+func OZ() Ozon {
+	return Ozon{
 		urlTemplate: "https://www.ozon.ru/api/composer-api.bx/page/json/v2?url=%s",
 		reId:        *regexp.MustCompile(`^((www.)|(https://www.)|(https://))*ozon.ru/product/.*?(\d{9,})`),
 	}
-	return &p
 }
 
 func (o Ozon) GetProductInfo(url string) (*MarketProduct, error) {
