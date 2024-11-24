@@ -73,7 +73,7 @@ func generateJsonForProduct(goodsId string) string {
 
 func (m MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
 	res, err :=
-		request("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
+		tlsRequest("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
 			getHeaders(),
 			getOffersForProduct(goodsId),
 			"POST")
@@ -103,7 +103,7 @@ func (m MegaMarket) GetProductInfo(url string) (*MarketProduct, error) {
 	}
 
 	res, err :=
-		request("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get",
+		tlsRequest("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get",
 			getHeaders(),
 			generateJsonForProduct(goodsId),
 			"POST")

@@ -26,7 +26,7 @@ func (y YandexParser) GetProductInfo(url string) (*MarketProduct, error) {
 		return nil, errors.New("can't find item id")
 	}
 
-	res, err := request(url, nil, "", "GET")
+	res, err := tlsRequest(url, nil, "", "GET")
 	if err != nil {
 		return nil, err
 	}

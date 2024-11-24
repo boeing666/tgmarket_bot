@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"tgmarket/internal/cache"
-	"tgmarket/internal/parser"
 	"tgmarket/internal/protobufs"
 
 	"github.com/mymmrac/telego"
@@ -17,7 +16,7 @@ type stateHandler func(data messageContext) error
 var stateCallbacks map[protobufs.UserState]stateHandler
 
 func handleEnterProductURL(data messageContext) error {
-	user := data.GetUser()
+	/*user := data.GetUser()
 	bot := data.GetBot()
 	chatid := tu.ID(user.TelegramID)
 
@@ -74,7 +73,8 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	return showProductInfo(product.ID, bot, user)
+	return showProductInfo(product.ID, bot, user)*/
+	return nil
 }
 
 func handleEnterProductName(data messageContext) error {

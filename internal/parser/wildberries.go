@@ -29,7 +29,7 @@ func (w Wildberries) GetProductInfo(url string) (*MarketProduct, error) {
 	itemId := f[len(f)-1]
 	apiurl := fmt.Sprintf(w.urlTemplate, itemId)
 
-	res, err := request(apiurl, nil, "", "GET")
+	res, err := tlsRequest(apiurl, nil, "", "GET")
 	if err != nil {
 		return nil, err
 	}

@@ -4,49 +4,70 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"regexp"
+	"strconv"
 )
 
 type Ozon struct {
 	urlTemplate string
-	regexID     regexp.Regexp
+	reId        regexp.Regexp
 }
 
 func OZ() *Ozon {
 	p := Ozon{
 		urlTemplate: "https://www.ozon.ru/api/composer-api.bx/page/json/v2?url=%s",
-		regexID:     *regexp.MustCompile(`^((www.)|(https://www.)|(https://))*ozon.ru/product/.*?(\d{9,})`),
+		reId:        *regexp.MustCompile(`^((www.)|(https://www.)|(https://))*ozon.ru/product/.*?(\d{9,})`),
 	}
 	return &p
 }
 
-func (m Ozon) GetProductInfo(url string) (*MarketProduct, error) {
-	apiurl := fmt.Sprintf(m.urlTemplate, url)
+func (o Ozon) GetProductInfo(url string) (*MarketProduct, error) {
+	f := o.reId.FindStringSubmatch(url)
+	if len(f) < 2 {
+		return nil, errors.New("can't find item id")
+	}
 
-	res, err := request(apiurl, nil, "", "GET")
+	apiurl := fmt.Sprintf(o.urlTemplate, url)
+
+	resp, err := httpClient().Get(apiurl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	resp, err = httpClient().Get(apiurl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %v", err)
+	}
+
+	var jsonRes OzonInfo
+	err = json.Unmarshal(body, &jsonRes)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Status != 200 {
-		return nil, fmt.Errorf("error. status code: %v", res.Status)
+	if len(jsonRes.Seo.Script) == 0 {
+		return nil, errors.New("empty innerHTML")
 	}
 
-	var wbres WBResponse
-	err = json.Unmarshal([]byte(res.Body), &wbres)
+	var jsonProduct OzonProductInfo
+	err = json.Unmarshal([]byte(jsonRes.Seo.Script[0].InnerHTML), &jsonProduct)
 	if err != nil {
 		return nil, err
 	}
-
-	if len(wbres.Data.Products) == 0 {
-		return nil, errors.New("field \"product\" is empty.")
-	}
-
-	wbProduct := wbres.Data.Products[0]
 
 	var product MarketProduct
-	product.Title = wbProduct.Name
-	product.Price = wbProduct.Sizes[0].Price.Total / 100.0
+	product.Title = jsonProduct.Name
+	product.Price, _ = strconv.Atoi(jsonProduct.Offers.Price)
+	product.Bonuses = 0
+	product.ID, _ = strconv.Atoi(jsonProduct.Sku)
 
 	return &product, err
 }
