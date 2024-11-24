@@ -52,7 +52,7 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	productID := string(productInfo.ID)
+	productID := strconv.Itoa(productInfo.ID)
 	product := user.FindProductByProductID(productID)
 	if product != nil {
 		_, err := bot.EditMessageText(&telego.EditMessageTextParams{

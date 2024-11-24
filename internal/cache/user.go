@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"strconv"
 	"tgmarket/internal/app"
 	"tgmarket/internal/models"
 	"tgmarket/internal/parser"
@@ -36,7 +37,7 @@ func (u *User) AddProduct(shop int, url string, productid string) (*models.Produ
 		Name:      productInfo.Title,
 		Price:     productInfo.Price,
 		Bonus:     productInfo.Bonuses,
-		ProductID: string(productInfo.ID),
+		ProductID: strconv.Itoa(productInfo.ID),
 		URL:       url,
 		ShopID:    shop,
 		UserID:    u.ID,
