@@ -26,12 +26,12 @@ func detectMarketplace(link string) protobufs.Shops {
 	}
 
 	switch {
-	/*case strings.Contains(parsedURL.Host, "market.yandex.ru"):
+	case strings.Contains(parsedURL.Host, "market.yandex.ru"):
 		return protobufs.Shops_YandexMarket
 	case strings.Contains(parsedURL.Host, "ozon.ru"):
 		return protobufs.Shops_Ozon
 	case strings.Contains(parsedURL.Host, "wildberries.ru"):
-		return protobufs.Shops_Wildberries*/
+		return protobufs.Shops_Wildberries
 	case strings.Contains(parsedURL.Host, "megamarket.ru"):
 		return protobufs.Shops_SberMegaMarket
 	}
