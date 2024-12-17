@@ -64,7 +64,7 @@ func handleEnterProductURL(data messageContext) error {
 		return err
 	}
 
-	product, err = user.AddProduct(int(market), data.GetMessageText(), productID)
+	product, err = user.AddProduct(int(market), data.GetMessageText(), productInfo)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      chatid,

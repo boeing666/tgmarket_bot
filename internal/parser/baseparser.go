@@ -2,7 +2,6 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 )
 
 type MarketProduct struct {
@@ -23,11 +22,10 @@ func GetProductInfo(url string) (*MarketProduct, error) {
 	parsers := []Parser{&mm, &ozon, &yandex, &wb}
 	for _, parser := range parsers {
 		product, err := parser.GetProductInfo(url)
-		if err != nil {
-			fmt.Printf("%s %v", url, err)
-			continue
+		if err == nil {
+			return product, nil
 		}
-		return product, nil
+
 	}
 	return nil, errors.New("product not found")
 }

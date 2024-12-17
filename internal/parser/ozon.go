@@ -5,8 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/http/cookiejar"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 type Ozon struct {
@@ -29,13 +32,19 @@ func (o Ozon) GetProductInfo(url string) (*MarketProduct, error) {
 
 	apiurl := fmt.Sprintf(o.urlTemplate, url)
 
-	resp, err := httpClient().Get(apiurl)
+	cookies, _ := cookiejar.New(nil)
+	httpclient := &http.Client{
+		Jar:     cookies,
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := httpclient.Get(apiurl)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	resp, err = httpClient().Get(apiurl)
+	resp, err = httpclient.Get(apiurl)
 	if err != nil {
 		return nil, err
 	}

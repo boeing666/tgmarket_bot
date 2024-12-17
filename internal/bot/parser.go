@@ -11,11 +11,11 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 )
 
-func sendMinPriceMessage(user *cache.User, bot *telego.Bot, product *models.Product) {
+func sendMinPriceMessage(user *cache.User, bot *telego.Bot, product *models.Product, price int) {
 	text, entities := tu.MessageEntities(
 		tu.Entity("🎉 Ура! Цена на товар стала ниже минимальной! 🎉\n"),
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
-		tu.Entity(fmt.Sprintf("📉 Текущая цена: %d\n", product.Price)),
+		tu.Entity(fmt.Sprintf("📉 Текущая цена: %d (%d)\n", price, product.Price-price)),
 		tu.Entity(fmt.Sprintf("💰 Минимальная цена: %d\n", product.MinPrice)),
 		tu.Entity("Не упустите возможность купить! 💸\n"),
 	)
@@ -30,7 +30,7 @@ func sendMinBonusesMessage(user *cache.User, bot *telego.Bot, product *models.Pr
 	text, entities := tu.MessageEntities(
 		tu.Entity("🎉 Бонусов за товар стало больше! 🎉\n"),
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
-		tu.Entity(fmt.Sprintf("🏆 Бонусов: %d\n", bonus)),
+		tu.Entity(fmt.Sprintf("🏆 Бонусов: %d (%d)\n", bonus, product.MinBonuses-bonus)),
 		tu.Entity(fmt.Sprintf("📈 Минимальное количество бонусов: %d\n", product.MinBonuses)),
 		tu.Entity("Не упустите шанс получить больше выгоды! 🌟\n"),
 	)
@@ -72,17 +72,17 @@ func marketsParser(bot *telego.Bot) {
 				}
 
 				if updatedProduct.Price != product.Price {
-					product.Price = updatedProduct.Price
-					if product.Price <= product.MinPrice {
-						sendMinPriceMessage(user, bot, product)
+					if updatedProduct.Price <= product.MinPrice {
+						sendMinPriceMessage(user, bot, product, updatedProduct.Price)
 					}
+					product.Price = updatedProduct.Price
 				}
 
 				if updatedProduct.Bonuses != product.Bonus {
-					product.Bonus = updatedProduct.Bonuses
-					if product.Bonus >= product.MinBonuses {
+					if updatedProduct.Bonuses >= product.MinBonuses {
 						sendMinBonusesMessage(user, bot, product, updatedProduct.Bonuses)
 					}
+					product.Bonus = updatedProduct.Bonuses
 				}
 
 				user.UpdateProduct(product)

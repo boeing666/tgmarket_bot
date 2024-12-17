@@ -5,6 +5,8 @@ import (
 	"errors"
 	"regexp"
 	"strconv"
+
+	"github.com/Noooste/azuretls-client"
 )
 
 type MegaMarket struct {
@@ -21,25 +23,9 @@ func getAuth() map[string]any {
 	return map[string]any{
 		"locationId":  "50",
 		"appPlatform": "WEB",
-		"appVersion":  0,
+		"appVersion":  1710405202,
+		"experiments": map[string]interface{}{},
 		"os":          "UNKNOWN_OS",
-	}
-}
-
-func getHeaders() map[string]string {
-	return map[string]string{
-		"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-		"Accept":           "application/json",
-		"Sec-Fetch-Site":   "same-origin",
-		"Sec-Fetch-Mode":   "cors",
-		"Sec-Fetch-User":   "?1",
-		"Sec-Fetch-Dest":   "empty",
-		"Accept-Language":  "en",
-		"Authority":        "megamarket.ru",
-		"Content-Type":     "application/json",
-		"Origin":           "https://megamarket.ru",
-		"Referer":          "https://megamarket.ru/",
-		"X-Requested-With": "XMLHttpRequest",
 	}
 }
 
@@ -71,12 +57,10 @@ func generateJsonForProduct(goodsId string) string {
 	return string(jsonData)
 }
 
-func (m MegaMarket) getOffers(goodsId string) (*ProductOffers, error) {
-	res, err :=
-		tlsRequest("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
-			getHeaders(),
-			getOffersForProduct(goodsId),
-			"POST")
+func (m MegaMarket) getOffers(session *azuretls.Session, goodsId string) (*ProductOffers, error) {
+	res, err := session.Post("https://megamarket.ru/api/mobile/v1/catalogService/productOffers/get",
+		getOffersForProduct(goodsId))
+
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +86,10 @@ func (m MegaMarket) GetProductInfo(url string) (*MarketProduct, error) {
 		return nil, err
 	}
 
-	res, err :=
-		tlsRequest("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get",
-			getHeaders(),
-			generateJsonForProduct(goodsId),
-			"POST")
+	session := azuretls.NewSession()
+	defer session.Close()
+
+	res, err := session.Post("https://megamarket.ru/api/mobile/v1/catalogService/productCardMainInfo/get", generateJsonForProduct(goodsId))
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +104,7 @@ func (m MegaMarket) GetProductInfo(url string) (*MarketProduct, error) {
 		return nil, errors.New("api success false")
 	}
 
-	offers, err := m.getOffers(goodsId)
+	offers, err := m.getOffers(session, goodsId)
 	if err != nil {
 		return nil, err
 	}

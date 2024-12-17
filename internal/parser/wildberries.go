@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/Noooste/azuretls-client"
 )
 
 type Wildberries struct {
@@ -28,12 +30,15 @@ func (w Wildberries) GetProductInfo(url string) (*MarketProduct, error) {
 	itemId := f[len(f)-1]
 	apiurl := fmt.Sprintf(w.urlTemplate, itemId)
 
-	res, err := tlsRequest(apiurl, nil, "", "GET")
+	session := azuretls.NewSession()
+	defer session.Close()
+
+	res, err := session.Get(apiurl)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Status != 200 {
+	if res.StatusCode != 200 {
 		return nil, fmt.Errorf("error. status code: %v", res.Status)
 	}
 

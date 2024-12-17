@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Noooste/azuretls-client"
 	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
 )
@@ -26,12 +27,15 @@ func (y YandexParser) GetProductInfo(url string) (*MarketProduct, error) {
 		return nil, errors.New("can't find item id")
 	}
 
-	res, err := tlsRequest(url, nil, "", "GET")
+	session := azuretls.NewSession()
+	defer session.Close()
+
+	res, err := session.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
-	doc, err := htmlquery.Parse(strings.NewReader(res.Body))
+	doc, err := htmlquery.Parse(strings.NewReader(string(res.Body)))
 	if err != nil {
 		return nil, err
 	}

@@ -25,13 +25,8 @@ type User struct {
 	FiltredProducts map[int64]*models.Product
 }
 
-func (u *User) AddProduct(shop int, url string, productid string) (*models.Product, error) {
+func (u *User) AddProduct(shop int, url string, productInfo *parser.MarketProduct) (*models.Product, error) {
 	db := app.GetDB()
-
-	productInfo, err := parser.GetProductInfo(url)
-	if err != nil {
-		return nil, err
-	}
 
 	product := models.Product{
 		Name:      productInfo.Title,
