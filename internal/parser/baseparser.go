@@ -12,14 +12,14 @@ type MarketProduct struct {
 }
 
 var (
-	mm     = MM()
-	ozon   = OZ()
+	mm = MM()
+	//ozon   = OZ()
 	yandex = Yandex()
 	wb     = WB()
 )
 
 func GetProductInfo(url string) (*MarketProduct, error) {
-	parsers := []Parser{&mm, &ozon, &yandex, &wb}
+	parsers := []Parser{&mm, &yandex, &wb}
 	for _, parser := range parsers {
 		product, err := parser.GetProductInfo(url)
 		if err == nil {
