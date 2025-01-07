@@ -15,7 +15,7 @@ func sendMinPriceMessage(user *cache.User, bot *telego.Bot, product *models.Prod
 	text, entities := tu.MessageEntities(
 		tu.Entity("🎉 Ура! Цена на товар стала ниже минимальной! 🎉\n"),
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
-		tu.Entity(fmt.Sprintf("📉 Текущая цена: %d (%d)\n", price, product.Price-price)),
+		tu.Entity(fmt.Sprintf("📉 Текущая цена: %d (Изменение от прошлой цены: %d)\n", price, product.Price-price)),
 		tu.Entity(fmt.Sprintf("💰 Минимальная цена: %d\n", product.MinPrice)),
 		tu.Entity("Не упустите возможность купить! 💸\n"),
 	)
@@ -30,7 +30,7 @@ func sendMinBonusesMessage(user *cache.User, bot *telego.Bot, product *models.Pr
 	text, entities := tu.MessageEntities(
 		tu.Entity("🎉 Бонусов за товар стало больше! 🎉\n"),
 		tu.Entity("📦 Товар: "), tu.Entity(fmt.Sprintf("%s\n", product.Name)).TextLink(product.URL),
-		tu.Entity(fmt.Sprintf("🏆 Бонусов: %d (%d)\n", bonus, product.MinBonuses-bonus)),
+		tu.Entity(fmt.Sprintf("🏆 Бонусов: %d (Изменение от прошлой цены: %d)\n", bonus, product.Bonus-bonus)),
 		tu.Entity(fmt.Sprintf("📈 Минимальное количество бонусов: %d\n", product.MinBonuses)),
 		tu.Entity("Не упустите шанс получить больше выгоды! 🌟\n"),
 	)
